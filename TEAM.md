@@ -5,7 +5,7 @@
 - Tên nhóm (`TenNhom`, không dấu, không khoảng trắng): BaChangLinh
 - Lớp: `L3B`
 - Repo của bàn: `K5-L3B-DAY10-BaChangLinh-PoCtoPilotGate1`
-- Thẻ sự cố đã bốc (S1–S8):
+- Thẻ sự cố đã bốc (S1–S8): S8
 
 ## Thành viên
 
@@ -24,11 +24,51 @@ Ghi `members` trong `submission/submission.json` theo dạng `"HoVaTen-MSSV"`, k
 
 Mỗi thành viên tự viết một mục bên dưới (chép mẫu, đổi tiêu đề thành họ tên không dấu và MSSV, ví dụ `## NguyenVanAn-20241234`).
 
-## HoVaTen-MSSV
+## TranTrungKien-2A202604014
 
 ### Phần việc phụ trách
 
-Vai trong bàn; câu nào của đề, mục nào của phiếu A/B/C, file nào (`lab10/guards.py`, `config/operating_gates.json`, …).
+Vai **Kỹ sư cổng** (Người A).
+
+- Code hệ thống: `lab10/guards.py` (`pre_guard`, `write_gate`), `lab10/monitors.py` (`high_value_refund_rate`).
+- Phiếu A: A2 (các hàm gate và kiểm tra), A3 (đối chiếu baseline).
+- Phiếu B: B6 (câu 2.8, thiết kế các tầng gate), B7.1, B7.2, B7.3 (cổng an toàn, trần kỹ thuật).
+- Phiếu C: C0 (nhật ký lần chạy vòng 2), C2 (bảng soát lỗi thẻ S8), C7 (phần code nhánh 1 và 5), C8 (chỉ số theo dõi mới), C9 (cây fault tree sau sửa và phân tích nhánh code).
+- Đánh giá và kiểm thử: Chạy `lab10.eval` và `lab10.grade` qua các mốc before, prepared, after; kiểm tra tính toàn vẹn và không regression.
+
+### Đóng góp cụ thể
+
+- Vòng 1: Thiết lập các cổng phòng ngừa `pre_guard` và `write_gate` trong `lab10/guards.py` để xử lý các lỗi nghiệp vụ cơ sở: chặn số tiền hoàn âm, chặn đơn hàng quá hạn > 30 ngày, giới hạn trần hoàn tiền tự động 200.000đ/đơn, chuyển người duyệt cho các trường hợp ngoại lệ. Kết quả đạt pass_rate 100%, 0 hoàn sai, 0 lỗi oan, 9/9 tiêu chí đạt.
+- Vòng 2 (Sự cố S8): Phân tích nguyên nhân gốc rễ của thẻ S8 ("Trưởng ca CSKH không tin trợ lý, kiểm tay hết"). Thiết kế và code 2 tầng phòng ngừa trong `write_gate`:
+  1. Xác thực 5 điều kiện toàn vẹn của mã phê duyệt (`approval_id`): phải tồn tại trong cơ sở dữ liệu `approvals`, đúng `ticket_id`, đúng `order_id`, `status == "valid"`, `expires_at >= as_of`, và `max_vnd >= amount_vnd`. Chặn đứng 100% các ca gian lận/lỗi mã phê duyệt (`S8-01` đến `S8-06`).
+  2. Kiểm soát trần tích lũy hoàn tự động theo khách hàng (`max_auto_refund_per_customer_per_day_vnd = 300.000đ`), cộng dồn lịch sử trong ngày từ ledger và tự động escalate sang người duyệt khi chạm trần (`S8-43`, `S8-44`).
+- Thiết kế monitor mới `high_value_refund_rate` trong `lab10/monitors.py` để giám sát các khoản hoàn giá trị cao và sự kiện dùng phê duyệt, sáng đèn rõ rệt khi sự cố xảy ra (từ 0,0455 lên 0,1154).
+- Chạy các lệnh kiểm thử `eval` và `grade` đảm bảo không regression (bộ nền duy trì pass_rate 1,0, đạt chuẩn visible 100%, khôi phục niềm tin của nhân viên CSKH).
+
+### Bằng chứng
+
+- Commit code và phiếu: `56451b9` (C2, C8), `e0191f0` (C0, C7, C9).
+- File code: `lab10/guards.py`, `lab10/monitors.py`.
+- Mã lần chạy kiểm thử:
+  - prepared: `R-S8-prepared-20261119-172653-0a44b6`
+  - after S8: `R-S8-after-20261119-175357-0a44b6`
+  - after base: `R-base-after-20261119-175410-0a44b6`
+  - grade: `R-S8-grade-20261119-175815-0a44b6` (PASS-VISIBLE 100%)
+
+### Dùng AI
+
+Dùng AI hỗ trợ phân tích code trace lỗi và đối chiếu cấu trúc `world_patch.json` của sự cố S8.
+
+### Exit ticket
+
+- Học được: Guard chặn bằng code (`write_gate`) là tầng phòng vệ vững chắc nhất để ngăn chặn thiệt hại tài chính tức thì, nhưng hiệu quả kinh doanh và vận hành chỉ đạt được khi phối hợp đồng bộ với cơ chế tạo niềm tin cho con người (ghi chú giải thích, phân quyền phê duyệt rõ ràng).
+- Còn chưa chắc: Trần tích lũy theo khách hàng hiện tại dựa trên `customer_id`; nếu kẻ gian sử dụng nhiều tài khoản khác nhau trên cùng một thiết bị hoặc địa chỉ IP thì cổng code hiện tại chưa phát hiện được nếu không có tầng phân tích hành vi phức tạp hơn.
+
+## NguyenThanhNam-2A202603934
+
+### Phần việc phụ trách
+
+Vai **Vận hành và pháp lý** (Trưởng nhóm).
 
 ### Đóng góp cụ thể
 
@@ -36,11 +76,11 @@ Vai trong bàn; câu nào của đề, mục nào của phiếu A/B/C, file nào
 
 ### Bằng chứng
 
-Mã commit, mã lần chạy (`runs/<mã>`), dòng trong phiếu.
+...
 
 ### Exit ticket
 
-Một điều học được, một điều còn chưa chắc.
+...
 
 ## HoangXuanLinh-2A202604017
 
