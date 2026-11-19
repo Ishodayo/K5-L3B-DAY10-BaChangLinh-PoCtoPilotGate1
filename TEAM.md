@@ -15,7 +15,7 @@ Họ tên đầy đủ và MSSV của **mọi** thành viên; bàn 3 người th
 | --: | --------- | ---- | --- | :---------: |
 |   1 | Nguyễn Thành Nam | 2A202603934 | Vận hành và pháp lý | ✓ |
 |   2 | Hoàng Xuân Lĩnh | 2A202604017 | Sản phẩm và kinh doanh |             |
-|   3 |           |      |     |             |
+|   3 | Trần Trung Kiên | 2A202604014 | Kỹ sư cổng |             |
 |   4 |           |      |     |             |
 
 Ghi `members` trong `submission/submission.json` theo dạng `"HoVaTen-MSSV"`, khớp bảng trên.
