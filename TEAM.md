@@ -84,17 +84,18 @@ Có dùng Claude để đọc code và dữ liệu của lab, gợi ý ngưỡng
 Vai **Kỹ sư cổng** (Người A).
 
 - Code hệ thống: `lab10/guards.py` (`pre_guard`, `write_gate`), `lab10/monitors.py` (`high_value_refund_rate`).
-- Phiếu A: A2 (các hàm gate và kiểm tra), A3 (đối chiếu baseline).
-- Phiếu B: B6 (câu 2.8, thiết kế các tầng gate), B7.1, B7.2, B7.3 (cổng an toàn, trần kỹ thuật).
+- Phiếu A: câu 1.3 ở A2 (các hàm gate và kiểm tra).
+- Phiếu B: câu 2.8 ở B7.3 (cổng an toàn, trần kỹ thuật).
 - Phiếu C: C0 (nhật ký lần chạy vòng 2), C2 (bảng soát lỗi thẻ S8), C7 (phần code nhánh 1 và 5), C8 (chỉ số theo dõi mới), C9 (cây fault tree sau sửa và phân tích nhánh code).
 - Đánh giá và kiểm thử: Chạy `lab10.eval` và `lab10.grade` qua các mốc before, prepared, after; kiểm tra tính toàn vẹn và không regression.
 
 ### Đóng góp cụ thể
 
-- Vòng 1: Thiết lập các cổng phòng ngừa `pre_guard` và `write_gate` trong `lab10/guards.py` để xử lý các lỗi nghiệp vụ cơ sở: chặn số tiền hoàn âm, chặn đơn hàng quá hạn > 30 ngày, giới hạn trần hoàn tiền tự động 200.000đ/đơn, chuyển người duyệt cho các trường hợp ngoại lệ. Kết quả đạt pass_rate 100%, 0 hoàn sai, 0 lỗi oan, 9/9 tiêu chí đạt.
-- Vòng 2 (Sự cố S8): Phân tích nguyên nhân gốc rễ của thẻ S8 ("Trưởng ca CSKH không tin trợ lý, kiểm tay hết"). Thiết kế và code 2 tầng phòng ngừa trong `write_gate`:
-  1. Xác thực 5 điều kiện toàn vẹn của mã phê duyệt (`approval_id`): phải tồn tại trong cơ sở dữ liệu `approvals`, đúng `ticket_id`, đúng `order_id`, `status == "valid"`, `expires_at >= as_of`, và `max_vnd >= amount_vnd`. Chặn đứng 100% các ca gian lận/lỗi mã phê duyệt (`S8-01` đến `S8-06`).
-  2. Kiểm soát trần tích lũy hoàn tự động theo khách hàng (`max_auto_refund_per_customer_per_day_vnd = 300.000đ`), cộng dồn lịch sử trong ngày từ ledger và tự động escalate sang người duyệt khi chạm trần (`S8-43`, `S8-44`).
+- Vòng 1: Thiết lập các cổng phòng ngừa `pre_guard` và `write_gate` trong `lab10/guards.py`: tính tiền theo tracking DB, chặn lỗi oan cho hãng, ghim chính sách theo ngày. Kết quả đạt pass_rate 100%, 0 hoàn sai, 0 lỗi oan, 9/9 tiêu chí đạt.
+- Vòng 2 (Sự cố S8): Phân tích nguyên nhân gốc rễ của thẻ S8 ("Trưởng ca CSKH không tin trợ lý, kiểm tay hết"). Thiết kế và code các tầng phòng ngừa trong `write_gate`:
+  1. Xác thực toàn diện mã phê duyệt (`approval_id`): phải tồn tại trong cơ sở dữ liệu `approvals`, đúng `ticket_id`, đúng `order_id`, `status == "valid"`, `expires_at >= as_of`, `max_vnd >= amount_vnd`, và đúng thẩm quyền ủy quyền của ca trực (`approver_id == NV-HANH`). Chặn đứng 100% các ca gian lận/lỗi mã phê duyệt (`S8-01` đến `S8-06`).
+  2. Chặn tự động trừ tiền người bán (`payer == MERCHANT`) để bảo đảm an toàn `merchant_debit_vnd = 0`.
+  3. Kiểm soát trần tích lũy hoàn tự động theo khách hàng trong ngày (`max_auto_refund_per_customer_per_day_vnd = 300.000đ`), tính đúng các khoản phát sinh trong ngày (bỏ qua các khoản hoàn cũ có sẵn trước ngày giả lập) và tự động escalate sang người duyệt khi chạm trần (`S8-43`, `S8-44`).
 - Thiết kế monitor mới `high_value_refund_rate` trong `lab10/monitors.py` để giám sát các khoản hoàn giá trị cao và sự kiện dùng phê duyệt, sáng đèn rõ rệt khi sự cố xảy ra (từ 0,0455 lên 0,1154).
 - Chạy các lệnh kiểm thử `eval` và `grade` đảm bảo không regression (bộ nền duy trì pass_rate 1,0, đạt chuẩn visible 100%, khôi phục niềm tin của nhân viên CSKH).
 

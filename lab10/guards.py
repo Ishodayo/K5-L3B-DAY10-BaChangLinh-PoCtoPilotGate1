@@ -84,13 +84,33 @@ def write_gate(ctx, action):
                         return Verdict.escalate("Mã phê duyệt đã hết hạn")
                     if appr.get("max_vnd", 0) < amount:
                         return Verdict.escalate(f"Khoản hoàn {amount}đ vượt quá hạn mức phê duyệt {appr.get('max_vnd')}đ")
+                    # Kiểm tra người phê duyệt đúng thẩm quyền ủy quyền của ca trực
+                    expected_approver = ctx.gates.get("operations", {}).get("approver_id")
+                    if expected_approver and appr.get("approver_id") != expected_approver:
+                        return Verdict.escalate(f"Người phê duyệt ({appr.get('approver_id')}) không đúng thẩm quyền ủy quyền ({expected_approver})")
+
+                # Cổng chặn tự động trừ tiền người bán (MERCHANT)
+                if action.get("payer") == "MERCHANT":
+                    return Verdict.escalate("Khoản hoàn trừ tiền người bán (MERCHANT) cần người duyệt thẩm định")
 
                 # Cổng kiểm tra trần hoàn tự động cho một khách trong ngày
                 customer_id = action.get("customer_id") or order.get("customer_id")
                 if customer_id and not appr_id:
                     limits = ctx.tools.ops_limits()
                     max_cust = limits.get("max_auto_refund_per_customer_per_day_vnd", 300000)
-                    past_refunds = ctx.tools.ledger_rows(customer_id=customer_id)
+                    # Lấy các khoản hoàn TRONG NGÀY của khách (không tính các khoản hoàn cũ có sẵn trước hôm nay)
+                    w = getattr(ctx.tools, "_w", None)
+                    if w is not None and hasattr(w, "seed_rows"):
+                        today_ledger = w.ledger[w.seed_rows:]
+                        past_refunds = [r for r in today_ledger if r.get("customer_id") == customer_id]
+                    else:
+                        past_refunds = []
+                        for r in ctx.tools.ledger_rows(customer_id=customer_id):
+                            o = ctx.tools.lookup_order(r.get("order_id"))
+                            if o and o.get("refund_status") == "REFUNDED":
+                                continue
+                            past_refunds.append(r)
+
                     spent_cust = sum(r.get("amount_vnd", 0) for r in past_refunds if not r.get("approval_id"))
                     if spent_cust + amount > max_cust:
                         return Verdict.escalate(f"Vượt trần hoàn tự động cho khách trong ngày ({max_cust}đ)")
