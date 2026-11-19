@@ -42,6 +42,42 @@ Mã commit, mã lần chạy (`runs/<mã>`), dòng trong phiếu.
 
 Một điều học được, một điều còn chưa chắc.
 
+## NguyenThanhNam-2A202603934
+
+### Phần việc phụ trách
+
+Vai **Vận hành và pháp lý** (Người C), trưởng nhóm.
+
+- Phiếu A: A1 câu 1.2 (mục tiêu nhìn từ chị Oanh và chị Hạnh), A2 cột Telemetry production (câu 1.4).
+- Phiếu B: B4 (câu 2.4, HAZOP vòng 1), B5 (câu 2.4, checklist 9 nhóm việc có PIC), B7.5 (câu 2.10, cổng `operations` và `legal`, runbook phần 1–3), B7.6 (giờ cao điểm); góp hai dòng và chốt chọn cổng ở B6 (pre-mortem, việc cả bàn).
+- Phiếu C: C3 phần riêng của thẻ S8 (một dòng ở C3.1, bảng C3.4), C4 (HAZOP của thẻ), C5 câu 3.3 (giả định môi trường), C6 (fault tree trước khi sửa, việc cả bàn), dòng `operations`/`legal` của C7 và ghép dòng `business` của Lĩnh, C9 (fault tree sau khi sửa, cùng Kiên), C10 (risk register), C11 (cập nhật checklist, runbook phần 4–5).
+- File: `config/operating_gates.json` mục `operations` và `legal`, `submission/submission.json`, `TEAM.md` (thông tin nhóm, bảng thành viên).
+
+### Đóng góp cụ thể
+
+- Vòng 1: mục tiêu cho kế toán đối soát (mọi dòng trợ lý ghi đều truy được về nguồn sự thật, 0 lỗi oan cho hãng) và cho trưởng ca (ca chuyển sang được nhận trong 60 phút, không vượt 6 ca/giờ/người); telemetry production đếm lỗi ghi cho hãng không có căn cứ trong tracking DB, theo hãng và theo ngày, ngưỡng đỏ ≥ 1.
+- HAZOP vòng 1 trên `file_carrier_fault` (5 dòng kỹ thuật, 4 dòng ngoài kỹ thuật), trong đó dòng "lỗi ghi cho hãng của kiện đầu tiên" là nhánh chưa thấy trên trace; checklist 9 nhóm việc, mỗi dòng một PIC có tên.
+- Cổng `operations` và `legal`: PIC NV-TUNG, người duyệt NV-HANH, 1 người trực, 6 ca/giờ, chờ tối đa 60 phút, 4 điều kiện dừng, kênh `#logix-refund-alert`, `decision_note = true`, kiểm mẫu 10%, chặn `recipient_contact` và `customer_note` gửi cho hãng, ghi lỗi hãng phải có nguyên nhân trong tracking. Ba con số `decision_note`, kiểm mẫu 10% và `approver_id` đặt từ vòng 1 đúng là điều kiện tin của nhân viên mà thẻ S8 cần.
+- Runbook 1–3 và giờ cao điểm khớp các con số trong config (dừng xong tối đa 15 phút, người bấm NV-TUNG).
+- Vòng 2 (thẻ S8): đối chiếu từng mã duyệt `A-2801`…`A-2806` với bảng `approvals` qua trace; bảng hiệu chỉnh lòng tin cho nhân viên duyệt và trưởng ca; HAZOP của thẻ trên `issue_refund` (5 dòng); fault tree trước và sau khi sửa; risk register; runbook 4–5.
+- Điền `submission/submission.json`.
+
+### Bằng chứng
+
+- Phiếu A: `81a9041`. Phiếu B: `c4c3c9a` (B4, B5, B6), `2677693` (B7.5, B7.6, `operations`, `legal`).
+- Phiếu C: `6343362` (C3.1, C3.4, C4, C5 câu 3.3), `5fe5f56` (C6), `aef0e99` (C7, C9, C10, C11), `ba5bc5f` (thống nhất mã lần chạy after).
+- `submission/submission.json`: `14d303e`. `TEAM.md`: `824f439`, `aefea73`.
+- Lần chạy dùng làm bằng chứng: bộ nền base `R-base-before-20261119-152705-bde05c`, after `R-base-after-20261119-155033-bd10fb`; thẻ S8 prepared `R-S8-prepared-20261119-172653-0a44b6`, after `R-S8-after-20261119-175357-0a44b6`; trace `S8-01`…`S8-06`, `S8-40`…`S8-44`, `S8-60` ở seed 11.
+
+### Dùng AI
+
+Có dùng Claude để đọc code, dữ liệu và trace của lab, soạn nháp các mục phiếu và runbook kèm số liệu; tôi soát lại, chọn con số và chốt nội dung.
+
+### Exit ticket
+
+- Học được: con số trong config không tự tạo ra lòng tin. Ở mốc prepared bàn đã có đủ ghi chú giải thích, kiểm mẫu 10% và người đứng tên đúng, mà nhân viên vẫn kiểm tay 100% vì còn khoản dùng mã duyệt sai; phải có code chặn mã sai thì các con số vận hành mới có tác dụng.
+- Còn chưa chắc: lòng tin của nhân viên ngoài thực tế có hồi phục ngay khi điều kiện đạt như dữ liệu mock giả định hay không, và bảng phê duyệt thật có thể sai ngay từ nguồn (cấp nhầm, thu hồi cập nhật trễ): cổng chỉ kiểm được những gì bảng ghi, nên vẫn cần chị Oanh đối chiếu hằng tuần.
+
 ## HoangXuanLinh-2A202604017
 
 ### Phần việc phụ trách
