@@ -349,8 +349,8 @@ python3 -m lab10.grade --incident S8
 |---|---|---|---|---|---|
 | [1] | Dùng sai mã phê duyệt bồi thường (hết hạn, sai ticket, thu hồi, vượt trần tiền) | `write_gate` trong `lab10/guards.py` (nhánh `issue_refund`: xác thực 5 điều kiện `approval_id`: đúng `ticket_id`, đúng `order_id`, `status == "valid"`, `expires_at >= as_of`, và `max_vnd >= amount_vnd`) | Chặn | **NGĂN hẳn**: vì cổng code chặn cứng trước khi ghi sổ cái, vi phạm bất kỳ điều kiện nào đều bắt buộc `escalate` sang Trưởng ca duyệt | `R-S8-after-20261119-175357-0a44b6` |
 | [5] | Khách hàng hoàn nhiều đơn dồn dập vượt trần 300.000đ/ngày | `write_gate` trong `lab10/guards.py` (nhánh `issue_refund`: cộng dồn `spent_cust` từ ledger và chặn khi vượt trần) | Giới hạn thiệt hại | **NGĂN hẳn**: tính chính xác từ sổ cái thực tế của ngày, chạm trần là khóa tự động hoàn tiền và chuyển người duyệt | `R-S8-after-20261119-175357-0a44b6` |
-| [A2] · [4] nhánh kinh doanh | Chi phí mỗi ticket vượt làm tay (11.323đ > 10.000đ, cả 4 kho) và ROI −2,05 ở mốc prepared, vì nhân viên kiểm lại 100% quyết định và mỗi ca chuyển người tốn 10.000đ | Không đổi `business` (giữ `daily_refund_cap_vnd` = 2000000, `cost_budget_per_ticket_vnd` = 1500, `pilot_scope` = all, `roi_min` = 1.0): chi phí là hệ quả của nhánh phê duyệt và lòng tin, đã sửa ở `write_gate` và `operations`; thu hẹp phạm vi sẽ không chữa được nguyên nhân | Giới hạn thiệt hại (trần 2.000.000đ/ngày chặn tổng hoàn tự động) | GIẢM: chi phí về 2.952đ, ROI 2,39, 4 kho đều rẻ hơn làm tay, nhưng phụ thuộc nhân viên giữ mức kiểm mẫu 10%; riêng trần tiền ngày NGĂN hẳn tổng hoàn tự động vượt ngân sách Finance (after: 282.000đ) | `R-S8-after-20261119-172654-0a44b6` |
-| [2] · [3] nhánh lòng tin | Quyết định không kèm lý do, kiểm mẫu dưới 10%, người đứng tên chưa phải NV-HANH: chỉ cần một điều kiện tin không đạt là nhân viên kiểm lại 100% (`staff_behavior.trust_conditions`) | `operations.decision_note = true`, `operations.review_sampling_pct = 10`, `operations.approver_id = "NV-HANH"`. Đã đặt từ vòng 1, **không đổi** ở vòng 2. Mục `legal` cũng không đổi (lộ dữ liệu cá nhân = 0 ở cả ba mốc) | Vận hành | GIẢM: các con số chỉ làm đủ điều kiện tin. Ở mốc prepared đã có đủ ba con số mà nhân viên vẫn kiểm 100%, vì trong ngày còn khoản dùng mã sai. Chỉ khi cổng [1] chặn hết mã sai thì nhân viên mới chuyển sang kiểm mẫu: after kiểm lại 10%, 0 ca ùn, chờ lâu nhất 5 phút, "Niềm tin của nhân viên duyệt: ĐẠT". Lá [2] và [3] cần đi cùng cổng [1] mới có tác dụng | `R-S8-after-20261119-172654-0a44b6` |
+| [A2] · [4] nhánh kinh doanh | Chi phí mỗi ticket vượt làm tay (11.323đ > 10.000đ, cả 4 kho) và ROI −2,05 ở mốc prepared, vì nhân viên kiểm lại 100% quyết định và mỗi ca chuyển người tốn 10.000đ | Không đổi `business` (giữ `daily_refund_cap_vnd` = 2000000, `cost_budget_per_ticket_vnd` = 1500, `pilot_scope` = all, `roi_min` = 1.0): chi phí là hệ quả của nhánh phê duyệt và lòng tin, đã sửa ở `write_gate` và `operations`; thu hẹp phạm vi sẽ không chữa được nguyên nhân | Giới hạn thiệt hại (trần 2.000.000đ/ngày chặn tổng hoàn tự động) | GIẢM: chi phí về 2.952đ, ROI 2,39, 4 kho đều rẻ hơn làm tay, nhưng phụ thuộc nhân viên giữ mức kiểm mẫu 10%; riêng trần tiền ngày NGĂN hẳn tổng hoàn tự động vượt ngân sách Finance (after: 282.000đ) | `R-S8-after-20261119-175357-0a44b6` |
+| [2] · [3] nhánh lòng tin | Quyết định không kèm lý do, kiểm mẫu dưới 10%, người đứng tên chưa phải NV-HANH: chỉ cần một điều kiện tin không đạt là nhân viên kiểm lại 100% (`staff_behavior.trust_conditions`) | `operations.decision_note = true`, `operations.review_sampling_pct = 10`, `operations.approver_id = "NV-HANH"`. Đã đặt từ vòng 1, **không đổi** ở vòng 2. Mục `legal` cũng không đổi (lộ dữ liệu cá nhân = 0 ở cả ba mốc) | Vận hành | GIẢM: các con số chỉ làm đủ điều kiện tin. Ở mốc prepared đã có đủ ba con số mà nhân viên vẫn kiểm 100%, vì trong ngày còn khoản dùng mã sai. Chỉ khi cổng [1] chặn hết mã sai thì nhân viên mới chuyển sang kiểm mẫu: after kiểm lại 10%, 0 ca ùn, chờ lâu nhất 5 phút, "Niềm tin của nhân viên duyệt: ĐẠT". Lá [2] và [3] cần đi cùng cổng [1] mới có tác dụng | `R-S8-after-20261119-175357-0a44b6` |
 
 ---
 
@@ -376,7 +376,7 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 
 <a id="c9"></a>
 
-## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `R-S8-after-20261119-172654-0a44b6`)
+## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `R-S8-after-20261119-175357-0a44b6`)
 
 Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [gate … hỏng]` và ghi:
 
@@ -429,10 +429,10 @@ Ghi các dòng đổi sau sự cố. Mỗi dòng vẫn phải có một PIC có 
 
 | # nhóm | Trạng thái mới (Xong / Chưa / Không áp dụng) | Bằng chứng mới (mã lần chạy, mục phiếu, số trong report) | PIC |
 |---|---|---|---|
-| 1 · Chất lượng | Xong | `R-S8-after-20261119-172654-0a44b6`: `pass_rate` 1,0, `pass_k` 1,0 trên gói S8 (prepared 0,8654); bộ nền vẫn 1,0, không ca nào mới hỏng | Trần Trung Kiên |
+| 1 · Chất lượng | Xong | `R-S8-after-20261119-175357-0a44b6`: `pass_rate` 1,0, `pass_k` 1,0 trên gói S8 (prepared 0,8654); bộ nền vẫn 1,0, không ca nào mới hỏng | Trần Trung Kiên |
 | 3 · Bảo mật | Chưa | Cổng [1] (C7, C9) chặn khoản vượt hạn mức không có mã hợp lệ, kể cả khi directive trong `checkout_note` bỏ qua bước tìm phê duyệt. Vẫn hở: khoản dưới hạn mức theo directive vẫn giữ `payer = MERCHANT` | Trần Trung Kiên |
 | 4 · Quyền hạn | Xong | `write_gate` trả quyền duyệt khoản trên hạn mức về NV-HANH khi mã sai (C3.1); người giữ công tắc NV-TUNG có trong `operations.pic` | Trần Trung Kiên |
-| 6 · Chi phí | Xong | `R-S8-after-20261119-172654-0a44b6`: 2.952đ/ticket (prepared 11.323đ), ROI 2,39 (prepared −2,05), 0 kho đắt hơn làm tay | Hoàng Xuân Lĩnh |
+| 6 · Chi phí | Xong | `R-S8-after-20261119-175357-0a44b6`: 2.952đ/ticket (prepared 11.323đ), ROI 2,39 (prepared −2,05), 0 kho đắt hơn làm tay | Hoàng Xuân Lĩnh |
 | 7 · Vận hành | Xong | `operations` đủ (C7 dòng [2] · [3]); Runbook 1–3 và giờ cao điểm (Phiếu B B7.5, B7.6), Runbook 4–5 dưới đây; after: kiểm lại 10%, 0 ca ùn, chờ lâu nhất 5 phút; chỉ số mới `high_value_refund_rate` (C8) | Nguyễn Thành Nam |
 | 8 · Con người, pháp lý | Xong | After: lỗi oan cho hãng 0 (prepared 30), lộ dữ liệu cá nhân 0; NV-HANH chỉ còn đứng tên các khoản có mã hợp lệ; mục `legal` giữ nguyên | Nguyễn Thành Nam |
 
