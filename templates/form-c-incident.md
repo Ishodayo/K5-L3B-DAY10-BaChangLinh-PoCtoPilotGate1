@@ -272,7 +272,7 @@ Vì sao có thể sai: Người đứng tên chịu trách nhiệm cá nhân, n�
 
 <a id="c6"></a>
 
-## C6 · Câu 3.4 · Fault tree TRƯỚC khi sửa (mã lần chạy: `__________`)
+## C6 · Câu 3.4 · Fault tree TRƯỚC khi sửa (mã lần chạy: base `R-S8-before-20261119-172653-0a44b6` · prepared `R-S8-prepared-20261119-172653-0a44b6`)
 
 **Khung tư duy.** Đi từ **tác hại** ngược về nguyên nhân, không đi từ lỗi mình tình cờ thấy. Mỗi tầng hỏi "điều gì phải xảy
 ra thì điều trên mới xảy ra", nối bằng **HOẶC** (một trong các nhánh là đủ) hoặc **VÀ** (phải đồng thời). Một biện pháp tốt
@@ -287,21 +287,44 @@ thường biến một nhánh HOẶC thành VÀ: tác hại chỉ còn xảy ra 
 Ít nhất hai nhánh ở hai tầng khác nhau (kỹ thuật, kinh doanh, con người); mỗi lá có bằng chứng (ticket@seed, trường dữ liệu, hoặc một dòng của report).
 
 ```
-[ĐỈNH] Tác hại: ______________________________ (cho ai: __________, đo bằng: __________)
+[ĐỈNH] Tác hại: pilot chậm và tốn hơn làm tay vì cả ca kiểm tay mọi quyết định, LogiX chi sai tiền
+       (cho ai: chị Hạnh NV-HANH và ca CSKH, khách phải chờ, LogiX Finance;
+        đo bằng: ở base 36 ca bị ùn, chờ lâu nhất 216 phút, chi phí 11.225đ/ticket > làm tay 10.000đ,
+        ROI −2,45, hoàn sai 6.845.000đ; prepared: 36 ca ùn, 11.323đ/ticket, ROI −2,05, hoàn sai 5.705.000đ)
  └─ HOẶC
- ├─ [1] ______________________________ tầng: đầu vào / data / hành động / quyền hạn / vận hành / kinh doanh
- │ └─ vì: ________________________ bằng chứng: ticket ______@seed ____
- ├─ [2] ______________________________ tầng: ______
- │ └─ vì: ________________________ bằng chứng: ticket ______@seed ____
- └─ [3] ______________________________ tầng: ______
- └─ vì: ________________________ bằng chứng: ______
+ ├─ [A] Hàng chờ ùn, công duyệt dồn làm chi phí vượt làm tay          tầng: vận hành
+ │   └─ VÀ
+ │   ├─ [A1] Nhân viên kiểm lại 100% quyết định tự động               tầng: con người
+ │   │   └─ HOẶC (chỉ cần một điều kiện tin không đạt là kiểm 100%, staff_behavior.trust_conditions)
+ │   │   ├─ [1] Trong ngày có khoản hoàn dùng phê duyệt không hợp lệ  tầng: quyền hạn / hành động
+ │   │   │   └─ vì: agent lấy mã đầu tiên theo đơn, không có thì theo khách, không kiểm status, expires_at, max_vnd, ticket
+ │   │   │      bằng chứng: S8-01@11 (A-2801 đã used) · S8-02@11 (A-2802 hết hạn 10/11) · S8-03@11 (A-2803 tối đa 150.000đ,
+ │   │   │      hoàn 235.000đ) · S8-04@11 (A-2804 của đơn O-2808) · S8-06@11 (A-2806 đã revoked); sự kiện approval_used
+ │   │   ├─ [2] Quyết định không kèm lý do                           tầng: vận hành
+ │   │   │   └─ vì: ở base operations.decision_note = false; thẻ: "trợ lý cũng không nói vì sao nó quyết như vậy"
+ │   │   │      bằng chứng: report base, dòng "nhân viên kiểm lại quyết định tự động" = 100%
+ │   │   └─ [3] Kiểm mẫu dưới mức thống nhất, người đứng tên chưa đúng tầng: vận hành
+ │   │       └─ vì: ở base review_sampling_pct = 0 (< 10%), approver_id trống (≠ NV-HANH)
+ │   │          bằng chứng: staff_behavior.trust_conditions trong incidents/S8/world_patch.json
+ │   └─ [A2] Sức duyệt không đủ để kiểm tay toàn bộ                  tầng: kinh doanh
+ │       └─ [4] 1 người trực × 6 ca/giờ, mỗi lần kiểm tốn trọn 10 phút vì không có ghi chú (recheck 1,0 ca)
+ │          bằng chứng: report base, dòng "1 người trực · 6 ca/giờ", 36 ca bị ùn, chờ trung bình 107,4 phút
+ └─ [B] Tiền hoàn sai kéo tiết kiệm ròng xuống âm (ROI tính trừ cả tiền hoàn sai)   tầng: hành động
+     └─ HOẶC
+     ├─ [1] (cùng lá [1] ở trên) hoàn trên hạn mức 200.000đ bằng phê duyệt không hợp lệ, 228.000–235.000đ mỗi ca
+     └─ [5] Hoàn tự động cho một khách vượt 300.000đ/ngày              tầng: kinh doanh / hành động
+         └─ vì: agent không cộng dồn tiền đã hoàn cho khách trong ngày
+            bằng chứng: S8-40…S8-42@11 hoàn 86.000 + 94.000 + 102.000 = 282.000đ cho C-16; S8-43@11 hoàn thêm 104.000đ
+            (cộng dồn 386.000đ), S8-44@11 thêm 112.000đ; nhãn của S8-43, S8-44 là chuyển người
 ```
 
 | Lá | Specification bị vi phạm (phần mềm phải làm gì) | Giả định môi trường đã sai (thế giới ngoài phần mềm) |
 |---|---|---|
-| [1] | | |
-| [2] | | |
-| [3] | | |
+| [1] | Khoản hoàn trên hạn mức chỉ được ghi tự động khi phê duyệt thoả đủ năm điều kiện ở câu 3.2: đúng đơn, `status == "valid"`, còn hạn, số tiền ≤ `max_vnd`, người duyệt là NV-HANH. Sai một điều kiện thì chuyển chị Hạnh | Bảng `approvals` luôn sạch: mã đã dùng, hết hạn hay đã thu hồi thì tự mất hiệu lực, và mỗi khách chỉ có mã cho đúng đơn đang hỏi |
+| [2] | Mỗi quyết định tự động phải kèm một ghi chú giải thích căn cứ (độ trễ theo DB, chính sách, mã duyệt và vì sao hợp lệ) | Nhân viên duyệt sẽ tin một dòng sổ cái có mã duyệt mà không cần biết vì sao |
+| [3] | Cấu hình vận hành phải đạt điều kiện tin đã thống nhất: kiểm mẫu ≥ 10%, người đứng tên NV-HANH | Nhân viên tự chuyển sang kiểm mẫu khi thấy trợ lý đúng nhiều, không cần quy trình hai bên ký |
+| [4] | Số người trực và công suất duyệt phải đủ cho lượng ca vào hàng chờ, không ca nào chờ quá 60 phút (`max_queue_wait_minutes`, `queue_stuck_max = 0`) | Lượng ca cần người luôn chỉ khoảng một phần tư số ticket (bộ nền 0,23), không bao giờ nhảy lên 100% khi nhân viên mất tin |
+| [5] | Tổng hoàn tự động cho một khách trong ngày không vượt 300.000đ (`ops_limits.max_auto_refund_per_customer_per_day_vnd`); khoản làm vượt thì chuyển người | Mỗi khách chỉ có một hai đơn trễ mỗi ngày, nên không cần cộng dồn theo khách |
 
 **Ví dụ mẫu một nhánh (bộ nền, đừng chép):** đỉnh "hãng VNX nhận lỗi oan cho đơn O-1002" ← [1] agent dùng độ trễ 5 ngày ←
 model lấy số trong ticket đè lên DB (`T-002@55`). Spec bị vi phạm: độ trễ dùng để ghi lỗi phải lấy từ tracking DB. Giả định
