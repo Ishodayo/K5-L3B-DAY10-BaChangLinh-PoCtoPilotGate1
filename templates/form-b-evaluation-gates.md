@@ -216,15 +216,15 @@ Trạng thái: **Xong** (có bằng chứng) · **Chưa** · **Không áp dụng
 
 | # | Nhóm việc | Bằng chứng lấy từ đâu (đã có sẵn trong lab) | Mục cần kiểm tra | Trạng thái | Bằng chứng | PIC |
 |---|---|---|---|---|---|---|
-| 1 | Chất lượng | Report `lab10.eval` (mã lần chạy) + bảng soát lỗi (Phiếu B mục B2) | | | | |
-| 2 | Dữ liệu | Bản đồ dữ liệu (Phiếu B mục B3, câu 2.3): trường nào là nguồn sự thật, trường nào là bản sao | | | | |
-| 3 | Bảo mật | Một vòng HAZOP với guideword PERTURBED (Phiếu B mục B4): chữ nào đi vào model mà không do LogiX viết | | | | |
-| 4 | Quyền hạn | `config/switches.json` + guard trước lệnh ghi; thẻ S2, S8 có thêm mục mức kiểm soát (Phiếu C mục C3) | | | | |
-| 5 | Hiệu năng, hạ tầng | Đội tự ước tính; HAZOP guideword INCAPABLE: LLM không trả lời thì sao; số người duyệt và số ca mỗi giờ | | | | |
-| 6 | Chi phí | Khối "kinh doanh và vận hành" của report: chi phí mỗi ticket so với làm tay, ROI, tiền LLM ticket đắt nhất; `config/operating_gates.json` mục `business` | | | | |
-| 7 | Vận hành | Runbook (Phiếu B mục B7.5–B7.6) + `config/operating_gates.json` mục `operations` (PIC, người duyệt, số người trực, điều kiện dừng, kênh báo tin) + metric trong `monitors.py` | | | | |
-| 8 | Con người, pháp lý | Bên thứ ba (hãng, tài xế, shop, người nhận quà, người đứng tên duyệt); `config/operating_gates.json` mục `legal`; thẻ S6, S7, S8 có mục riêng ở Phiếu C mục C3 | | | | |
-| 9 | Quyết định | Câu tiêu chí (Phiếu A mục A4) + hash Bản tiêu chí đã ký + quyết định Gate 1 (Phiếu B mục B8, Phiếu C mục C12) | | | | |
+| 1 | Chất lượng | Report `lab10.eval` (mã lần chạy) + bảng soát lỗi (Phiếu B mục B2) | Kiểm tra pass_rate, pass_k, hoàn sai, lỗi oan hãng, lộ PII và khắc phục ca T-002@55 | Xong | Report `R-base-after-20261119-155033-bd10fb` (pass_rate 1.0, 0 hoàn sai, 0 lỗi hãng); Phiếu B mục B2 | Trần Trung Kiên |
+| 2 | Dữ liệu | Bản đồ dữ liệu (Phiếu B mục B3, câu 2.3): trường nào là nguồn sự thật, trường nào là bản sao | Kiểm tra nguồn sự thật giữa orders, tracking và chính sách hiệu lực REFUND-v3/v4 | Xong | Phiếu B mục B3 (bản đồ dữ liệu và ví dụ drift chính sách) | Hoàng Xuân Lĩnh |
+| 3 | Bảo mật | Một vòng HAZOP với guideword PERTURBED (Phiếu B mục B4): chữ nào đi vào model mà không do LogiX viết | Kiểm tra chống prompt injection trong checkout_note và chỉ thị ghi đè directive | Xong | Phiếu B mục B4; code `guards.py` chặn lệnh trừ tiền shop merchant và bóc tách PII | Nguyễn Thành Nam |
+| 4 | Quyền hạn | `config/switches.json` + guard trước lệnh ghi; thẻ S2, S8 có thêm mục mức kiểm soát (Phiếu C mục C3) | Kiểm tra công tắc khẩn cấp switches và cổng phòng ngừa write_gate trước các lệnh ghi | Xong | File `config/switches.json` (4 tool: on); code `lab10/guards.py` (pre_guard, write_gate) | Trần Trung Kiên |
+| 5 | Hiệu năng, hạ tầng | Đội tự ước tính; HAZOP guideword INCAPABLE: LLM không trả lời thì sao; số người duyệt và số ca mỗi giờ | Kiểm tra hàng chờ người duyệt, thời gian chờ tối đa, số ca bị ùn quá 60 phút và chi phí LLM | Xong | Report `R-base-after-20261119-155033-bd10fb`: 1 người trực duyệt 6 ca/giờ, chờ lâu nhất 0.0 phút, 0 ca bị ùn (hạn 60 phút); ticket tốn LLM max 670đ (trần 1.500đ) | Trần Trung Kiên |
+| 6 | Chi phí | Khối "kinh doanh và vận hành" của report: chi phí mỗi ticket so với làm tay, ROI, tiền LLM ticket đắt nhất; `config/operating_gates.json` mục `business` | Kiểm tra chi phí/ticket so với làm tay 10.000đ, ROI tối thiểu và ngân sách hoàn ngày | Xong | Report `R-base-after-20261119-155033-bd10fb`: chi phí 4.202đ/ticket (< 10.000đ), ROI = 1.38 (≥ 1.0), tổng hoàn tự động 155.000đ/ngày (< 2.000.000đ) | Hoàng Xuân Lĩnh |
+| 7 | Vận hành | Runbook (Phiếu B mục B7.5–B7.6) + `config/operating_gates.json` mục `operations` (PIC, người duyệt, số người trực, điều kiện dừng, kênh báo tin) + metric trong `monitors.py` | Kiểm tra phân công trực ca, SLA 60 phút, kịch bản cao điểm và cơ chế kill-switch | Chưa | Đang chờ hoàn thiện chi tiết Runbook ở B7.5–B7.6 và mục operations trong operating_gates.json | Nguyễn Thành Nam |
+| 8 | Con người, pháp lý | Bên thứ ba (hãng, tài xế, shop, người nhận quà, người đứng tên duyệt); `config/operating_gates.json` mục `legal`; thẻ S6, S7, S8 có mục riêng ở Phiếu C mục C3 | Kiểm tra bảo vệ quyền lợi hãng vận chuyển đối tác, shop và không gửi PII người nhận | Chưa | Đang chờ cấu hình hoàn tất mục legal trong operating_gates.json; code guards.py đã chặn lộ contact | Nguyễn Thành Nam |
+| 9 | Quyết định | Câu tiêu chí (Phiếu A mục A4) + hash Bản tiêu chí đã ký + quyết định Gate 1 (Phiếu B mục B8, Phiếu C mục C12) | Kiểm tra tính nhất quán giữa Bản tiêu chí đã ký và quyết định Gate 1 v1 | Chưa | Tiêu chí đã ký (hash `1a248a13`); chờ chốt quyết định v1 tại mục B8 ở phút 105–115 | Nguyễn Thành Nam |
 
 Ô "Chưa" có rủi ro cao → chuyển thành một dòng Risk register (Phiếu C mục C10).
 
