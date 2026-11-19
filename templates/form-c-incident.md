@@ -30,10 +30,10 @@ Mỗi lệnh `lab10.eval` và `lab10.grade` tự ghi một dòng vào `runs/jour
 
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | | Sx · prepared | nhận thẻ đã bốc, chưa sửa thêm (đúng cổng vòng 1 đã chốt) | | | | | |
-| 2 | | Sx · after | | | | | | |
-| 3 | | Sx · after | | | | | | |
-| 4 | | base · after | (kiểm không regression) | | | | | |
+| 1 | `R-S8-prepared-20261119-172653-0a44b6` | S8 · prepared | nhận thẻ đã bốc, chưa sửa thêm (đúng cổng vòng 1 đã chốt) | 0,8654 [0,8269; 0,9038] | 0,8654 | 5.705.000đ · 30 · 0 | 0,0 | Không đạt 6/9 tiêu chí: hoàn sai 5.705.000đ, 30 lỗi oan, 36 ca ùn, chi phí 11.323đ, ROI -2,05; cần vá cổng quản lý phê duyệt và trần khách hàng. |
+| 2 | `R-S8-after-20261119-175357-0a44b6` | S8 · after | cổng write_gate duyệt approval và trần khách | 1,0 [1,0; 1,0] | 1,0 | 0đ · 0 · 0 | 0,1346 | Đạt 9/9 tiêu chí (pass_rate 100%, 0 hoàn sai, 0 lỗi oan, 0 ca ùn, chi phí 2.952đ, ROI 2,39); niềm tin nhân viên đạt. |
+| 3 | `R-base-after-20261119-175410-0a44b6` | base · after | kiểm không regression | 1,0 [1,0; 1,0] | 1,0 | 0đ · 0 · 0 | 0,2273 | Đạt 9/9 tiêu chí; kiểm tra không bị suy thoái (regression) trên bộ nền gốc ban đầu. |
+| 4 | | | | | | | | |
 
 ---
 
@@ -44,7 +44,7 @@ Mỗi lệnh `lab10.eval` và `lab10.grade` tự ghi một dòng vào `runs/jour
 Chạy **trước khi sửa bất cứ thứ gì**:
 
 ```bash
-python3 -m lab10.grade --incident Sx
+python3 -m lab10.grade --incident S8
 ```
 
 - Mã lần chạy grade: `R-S8-grade-20261119-172651-0a44b6` · base: `R-S8-before-20261119-172653-0a44b6` · prepared: `R-S8-prepared-20261119-172653-0a44b6`
@@ -341,14 +341,14 @@ Sửa NGOÀI model, đúng chỗ cho từng nguyên nhân. Code: `lab10/guards.p
 `config/operating_gates.json` (phạm vi, người trực, trần, ngân sách, kiểm mẫu, ghi chú giải thích, cổng pháp lý). Rồi chạy:
 
 ```bash
-python3 -m lab10.eval --suite Sx --stage after --note "đổi MỘT thứ: ..."
-python3 -m lab10.grade --incident Sx
+python3 -m lab10.eval --suite S8 --stage after --note "cổng write_gate duyệt approval và trần khách"
+python3 -m lab10.grade --incident S8
 ```
 
 | Nhánh fault tree | Nguyên nhân | Chỗ sửa (hàm + nhánh trong `guards.py`, hoặc khoá trong `operating_gates.json`) | Tầng (phát hiện / chặn / giới hạn thiệt hại / vận hành) | GIẢM khả năng hay NGĂN hẳn? Vì sao | Mã lần chạy sau khi sửa |
 |---|---|---|---|---|---|
-| [1] | | | | | |
-| [5] | | | | | |
+| [1] | Dùng sai mã phê duyệt bồi thường (hết hạn, sai ticket, thu hồi, vượt trần tiền) | `write_gate` trong `lab10/guards.py` (nhánh `issue_refund`: xác thực 5 điều kiện `approval_id`: đúng `ticket_id`, đúng `order_id`, `status == "valid"`, `expires_at >= as_of`, và `max_vnd >= amount_vnd`) | Chặn | **NGĂN hẳn**: vì cổng code chặn cứng trước khi ghi sổ cái, vi phạm bất kỳ điều kiện nào đều bắt buộc `escalate` sang Trưởng ca duyệt | `R-S8-after-20261119-175357-0a44b6` |
+| [5] | Khách hàng hoàn nhiều đơn dồn dập vượt trần 300.000đ/ngày | `write_gate` trong `lab10/guards.py` (nhánh `issue_refund`: cộng dồn `spent_cust` từ ledger và chặn khi vượt trần) | Giới hạn thiệt hại | **NGĂN hẳn**: tính chính xác từ sổ cái thực tế của ngày, chạm trần là khóa tự động hoàn tiền và chuyển người duyệt | `R-S8-after-20261119-175357-0a44b6` |
 | [A2] · [4] nhánh kinh doanh | Chi phí mỗi ticket vượt làm tay (11.323đ > 10.000đ, cả 4 kho) và ROI −2,05 ở mốc prepared, vì nhân viên kiểm lại 100% quyết định và mỗi ca chuyển người tốn 10.000đ | Không đổi `business` (giữ `daily_refund_cap_vnd` = 2000000, `cost_budget_per_ticket_vnd` = 1500, `pilot_scope` = all, `roi_min` = 1.0): chi phí là hệ quả của nhánh phê duyệt và lòng tin, đã sửa ở `write_gate` và `operations`; thu hẹp phạm vi sẽ không chữa được nguyên nhân | Giới hạn thiệt hại (trần 2.000.000đ/ngày chặn tổng hoàn tự động) | GIẢM: chi phí về 2.952đ, ROI 2,39, 4 kho đều rẻ hơn làm tay, nhưng phụ thuộc nhân viên giữ mức kiểm mẫu 10%; riêng trần tiền ngày NGĂN hẳn tổng hoàn tự động vượt ngân sách Finance (after: 282.000đ) | `R-S8-after-20261119-172654-0a44b6` |
 | [2] · [3] nhánh lòng tin | Quyết định không kèm lý do, kiểm mẫu dưới 10%, người đứng tên chưa phải NV-HANH: chỉ cần một điều kiện tin không đạt là nhân viên kiểm lại 100% (`staff_behavior.trust_conditions`) | `operations.decision_note = true`, `operations.review_sampling_pct = 10`, `operations.approver_id = "NV-HANH"`. Đã đặt từ vòng 1, **không đổi** ở vòng 2. Mục `legal` cũng không đổi (lộ dữ liệu cá nhân = 0 ở cả ba mốc) | Vận hành | GIẢM: các con số chỉ làm đủ điều kiện tin. Ở mốc prepared đã có đủ ba con số mà nhân viên vẫn kiểm 100%, vì trong ngày còn khoản dùng mã sai. Chỉ khi cổng [1] chặn hết mã sai thì nhân viên mới chuyển sang kiểm mẫu: after kiểm lại 10%, 0 ca ùn, chờ lâu nhất 5 phút, "Niềm tin của nhân viên duyệt: ĐẠT". Lá [2] và [3] cần đi cùng cổng [1] mới có tác dụng | `R-S8-after-20261119-172654-0a44b6` |
 
