@@ -47,19 +47,23 @@ Chạy **trước khi sửa bất cứ thứ gì**:
 python3 -m lab10.grade --incident Sx
 ```
 
-- Mã lần chạy grade: `__________` · base: `__________` · prepared: `__________`
-- Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): …
-- Khối kinh doanh và vận hành còn dòng nào vượt trần: …
+- Mã lần chạy grade: `R-S8-grade-20261119-172651-0a44b6` · base: `R-S8-before-20261119-172653-0a44b6` · prepared: `R-S8-prepared-20261119-172653-0a44b6`
+- Cổng vòng 1 đỡ được ô / con số nào (so cột base với cột prepared): chỉ đỡ phần nhỏ, nhờ cổng tính tiền theo tracking DB: tiền hoàn sai trên gói S8 giảm từ 6.845.000đ xuống 5.705.000đ (−1.140.000đ, kho HCM về 0đ), lỗi ghi oan cho hãng giảm từ 35 xuống 30, ROI từ −2,45 lên −2,05. Phần phê duyệt và lòng tin **không đỡ được gì**: `pass_rate` giữ 0,8654, nhân viên vẫn kiểm lại 100% quyết định tự động, 36 ca ùn, chờ lâu nhất 216 phút như base. Chi phí còn tăng nhẹ (11.225đ → 11.323đ) vì `decision_note` tốn thêm tiền LLM.
+- Khối kinh doanh và vận hành còn dòng nào vượt trần: ở mốc prepared còn **ba dòng vượt trần**: hàng chờ 36 ca bị ùn (chờ lâu nhất 216 phút > hạn 60 phút); chi phí mỗi ticket 11.323đ > làm tay 10.000đ (cả 4 kho CT, DN, HCM, HN đều đắt hơn làm tay); ROI −2,05 < ngưỡng đã ký 1,0. Ngưỡng đã ký còn trượt: hoàn sai 5.705.000đ > 0, lỗi oan 30 > 0, `pass_rate` 0,8654 < 0,90. Tổng hoàn tự động 498.000đ vẫn dưới ngân sách 2.000.000đ.
+
 
 **Mở lại pre-mortem (Phiếu B mục B6), viết bằng bút khác màu.** Với thẻ S1, S3, S4, S5 đây là một phần của phần riêng theo thẻ.
 
-- Sự cố trên thẻ thuộc lăng kính nào (kỹ thuật, kinh doanh, con người và vận hành, pháp lý)? …
-- Có nằm trong các lý do bàn đã viết không? Nếu có: cổng vòng 1 đã đỡ được bao nhiêu (đọc cột prepared trong report)? Nếu không: vì sao cả bàn không nghĩ tới? …
+- Sự cố trên thẻ thuộc lăng kính nào (kỹ thuật, kinh doanh, con người và vận hành, pháp lý)? **Con người và vận hành** là chính (trưởng ca không tin trợ lý, cả ca kiểm tay 100%, hàng chờ trên 40 ca, chi phí cao hơn làm tay), với gốc **kỹ thuật** (agent dùng phê duyệt không hợp lệ: `agent.py` dòng 171–176 lấy phê duyệt theo khách khi đơn không có và lấy cái đầu tiên, không kiểm `status`, `expires_at`, `max_vnd`, `order_id`) và hệ quả **pháp lý** (NV-HANH đứng tên những khoản chị không duyệt, phải giải trình với kiểm toán).
+- Có nằm trong các lý do bàn đã viết không? Nếu có: cổng vòng 1 đã đỡ được bao nhiêu (đọc cột prepared trong report)? Nếu không: vì sao cả bàn không nghĩ tới? **Có một phần.** B6 dòng "Con người và vận hành → Risk register" đã nêu `decision_note`, `review_sampling_pct`, `approver_id`, và config vòng 1 đã đặt sẵn `decision_note = true`, `review_sampling_pct = 10`, `approver_id = NV-HANH` (đúng `trust_conditions` của nhân viên). Nhưng bàn **không nghĩ tới phê duyệt không hợp lệ**: cổng vòng 1 kiểm số tiền và lỗi hãng, không kiểm phê duyệt. Vì vậy điều kiện thứ tư để nhân viên thôi kiểm tay ("trong ngày không còn khoản hoàn nào dùng phê duyệt không hợp lệ") vẫn trượt. Lý do bàn bỏ sót: bộ nền chỉ có 1 phê duyệt hợp lệ (A-0008), nên trace vòng 1 không lộ lỗi này. Mức đỡ cụ thể (cột prepared so với base): chỉ bớt 1.140.000đ hoàn sai và 5 lỗi oan nhờ cổng tracking DB; phần phê duyệt và lòng tin vẫn nguyên: 5.705.000đ hoàn sai, 30 lỗi oan, 36 ca ùn, nhân viên kiểm lại 100%.
+
+
 - Lý do còn thiếu, thêm bây giờ:
 
 | Lý do thất bại (viết ở thì quá khứ) | Lăng kính | Kiểm được bằng gì (trace / data / config nào) |
 |---|---|---|
-| | | |
+| Trợ lý đã ghi hoàn trên 200.000đ bằng phê duyệt đã dùng, hết hạn, bị thu hồi, vượt hạn mức hoặc cấp cho đơn khác, nên trưởng ca đứng tên những khoản chị không duyệt và cả ca quay về kiểm tay 100% | Con người và vận hành (gốc kỹ thuật) | Trace `S8-01`, `S8-02`, `S8-03`, `S8-06` (sự kiện `approval_used`) đối chiếu `incidents/S8/world_patch.json` → `approvals`; dòng "Niềm tin của nhân viên duyệt" trong report grade |
+
 
 ---
 
