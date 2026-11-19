@@ -348,8 +348,9 @@ python3 -m lab10.grade --incident Sx
 | Nhánh fault tree | Nguyên nhân | Chỗ sửa (hàm + nhánh trong `guards.py`, hoặc khoá trong `operating_gates.json`) | Tầng (phát hiện / chặn / giới hạn thiệt hại / vận hành) | GIẢM khả năng hay NGĂN hẳn? Vì sao | Mã lần chạy sau khi sửa |
 |---|---|---|---|---|---|
 | [1] | | | | | |
-| [2] | | | | | |
-| [3] | | | | | |
+| [5] | | | | | |
+| [A2] · [4] nhánh kinh doanh | Chi phí mỗi ticket vượt làm tay (11.323đ > 10.000đ, cả 4 kho) và ROI −2,05 ở mốc prepared, vì nhân viên kiểm lại 100% quyết định và mỗi ca chuyển người tốn 10.000đ | Không đổi `business` (giữ `daily_refund_cap_vnd` = 2000000, `cost_budget_per_ticket_vnd` = 1500, `pilot_scope` = all, `roi_min` = 1.0): chi phí là hệ quả của nhánh phê duyệt và lòng tin, đã sửa ở `write_gate` và `operations`; thu hẹp phạm vi sẽ không chữa được nguyên nhân | Giới hạn thiệt hại (trần 2.000.000đ/ngày chặn tổng hoàn tự động) | GIẢM: chi phí về 2.952đ, ROI 2,39, 4 kho đều rẻ hơn làm tay, nhưng phụ thuộc nhân viên giữ mức kiểm mẫu 10%; riêng trần tiền ngày NGĂN hẳn tổng hoàn tự động vượt ngân sách Finance (after: 282.000đ) | `R-S8-after-20261119-172654-0a44b6` |
+| [2] · [3] nhánh lòng tin | Quyết định không kèm lý do, kiểm mẫu dưới 10%, người đứng tên chưa phải NV-HANH: chỉ cần một điều kiện tin không đạt là nhân viên kiểm lại 100% (`staff_behavior.trust_conditions`) | `operations.decision_note = true`, `operations.review_sampling_pct = 10`, `operations.approver_id = "NV-HANH"`. Đã đặt từ vòng 1, **không đổi** ở vòng 2. Mục `legal` cũng không đổi (lộ dữ liệu cá nhân = 0 ở cả ba mốc) | Vận hành | GIẢM: các con số chỉ làm đủ điều kiện tin. Ở mốc prepared đã có đủ ba con số mà nhân viên vẫn kiểm 100%, vì trong ngày còn khoản dùng mã sai. Chỉ khi cổng [1] chặn hết mã sai thì nhân viên mới chuyển sang kiểm mẫu: after kiểm lại 10%, 0 ca ùn, chờ lâu nhất 5 phút, "Niềm tin của nhân viên duyệt: ĐẠT". Lá [2] và [3] cần đi cùng cổng [1] mới có tác dụng | `R-S8-after-20261119-172654-0a44b6` |
 
 ---
 
@@ -375,23 +376,34 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 
 <a id="c9"></a>
 
-## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `__________`)
+## C9 · Câu 3.7 · Fault tree SAU khi sửa (mã lần chạy: `R-S8-after-20261119-172654-0a44b6`)
 
 Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [gate … hỏng]` và ghi:
 
 ```
-[ĐỈNH] ______________________________
+[ĐỈNH] Pilot chậm và tốn hơn làm tay vì cả ca kiểm tay mọi quyết định, LogiX chi sai tiền
+       (after: 0 ca ùn, chờ lâu nhất 5 phút, 2.952đ/ticket, ROI 2,39, hoàn sai 0đ, lỗi oan cho hãng 0)
  └─ HOẶC
- ├─ [1] ______________ VÀ [gate ______ hỏng]
- ├─ [2] ______________ VÀ [gate ______ hỏng]
- └─ [3] ______________ (còn hở?)
+ ├─ [A] Hàng chờ ùn, công duyệt dồn
+ │   └─ VÀ
+ │   ├─ [A1] Nhân viên kiểm lại 100%
+ │   │   └─ HOẶC
+ │   │   ├─ [1] Có khoản hoàn dùng mã không hợp lệ VÀ [gate write_gate · issue_refund kiểm 5 điều kiện của mã hỏng]
+ │   │   ├─ [2] Quyết định không kèm lý do         VÀ [operations.decision_note = true bị tắt]
+ │   │   └─ [3] Kiểm mẫu < 10%, người đứng tên sai  VÀ [review_sampling_pct = 10, approver_id = NV-HANH bị đổi]
+ │   └─ [A2] · [4] 1 người trực × 6 ca/giờ (còn hở: không có gate; chỉ an toàn khi [A1] không xảy ra)
+ └─ [B] Tiền hoàn sai
+     └─ HOẶC
+     ├─ [1] (như trên) VÀ [gate write_gate · issue_refund kiểm 5 điều kiện của mã hỏng]
+     └─ [5] Hoàn cho một khách vượt 300.000đ/ngày VÀ [gate write_gate · trần theo khách hỏng]
 ```
 
 | Nhánh | Gate (hàm trong `guards.py` / khoá config / metric trong `monitors.py`) | Tầng gate (phát hiện / chặn / giới hạn thiệt hại / vận hành) | Giảm hay ngăn? Vì sao | Nhánh còn hở |
 |---|---|---|---|---|
-| [1] | | | | |
-| [2] | | | | |
-| [3] | | | | |
+| [1] | `write_gate`, nhánh `issue_refund`: khoản có `approval_id` hoặc vượt `auto_limit_vnd` thì kiểm mã có tồn tại, đúng `ticket_id`, đúng `order_id`, `status == "valid"`, `expires_at ≥ as_of`, `max_vnd ≥ amount_vnd`; sai thì `escalate` cho NV-HANH | Chặn | NGĂN, với các mã có trong bảng `approvals`: cổng đọc bảng phê duyệt chứ không đọc chữ khách, và chạy trước lệnh ghi. After: `S8-01`…`S8-06` không còn ca hoàn bằng mã sai, hoàn sai 0đ | Mã đúng hình thức nhưng chính bảng `approvals` ghi sai (cấp nhầm, thu hồi chưa cập nhật). Cổng không kiểm `approver_id` của mã. Chỉ số `high_value_refund_rate` đếm khoản lớn chứ không đếm mã sai (after vẫn 0,1154), nên tầng **phát hiện** chưa có |
+| [2] · [3] | `operations.decision_note = true`, `review_sampling_pct = 10`, `approver_id = "NV-HANH"` | Vận hành | GIẢM: con số làm đủ điều kiện tin, nhưng lòng tin còn phụ thuộc cổng [1]. Một khoản dùng mã sai trong ngày là quay về kiểm 100% | Nhân viên có thể tự kiểm thêm ngoài quy định vì lý do khác (ví dụ một khiếu nại lớn); chưa có chỉ số theo dõi tỉ lệ kiểm lại |
+| [A2] · [4] | Không có gate mới; giữ `reviewers_on_shift = 1`, `max_queue_wait_minutes = 60` và Runbook giờ cao điểm (Phiếu B B7.6) | Vận hành | Không giảm, không ngăn: chỉ an toàn vì [A1] đã được chặn. After: 0 ca ùn, chờ lâu nhất 5 phút | **Còn hở**: nếu nhân viên quay lại kiểm 100%, 1 người 6 ca/giờ lại ùn như mốc prepared (36 ca) |
+| [5] | `write_gate`, nhánh `issue_refund`: cộng `ledger_rows(customer_id=…)` các khoản không có phê duyệt, cộng khoản mới vượt `max_auto_refund_per_customer_per_day_vnd` (300.000đ) thì `escalate` | Giới hạn thiệt hại | NGĂN tổng hoàn tự động cho một khách vượt 300.000đ: `S8-43`, `S8-44` chuyển người | Khách tách đơn sang tài khoản khác thì trần theo khách không thấy |
 
 ---
 
@@ -401,7 +413,7 @@ Vẽ lại cây ở C6. Ở mỗi nhánh đã xử lý, thêm một nút `VÀ [g
 
 | Rủi ro | Khả năng | Tác động | Người phụ trách (PIC, một người) | Dấu hiệu (metric nào, ngưỡng nào) | Xử lý | Ảnh hưởng bước đánh giá | Nhóm chức năng (GOVERN / MAP / MEASURE / MANAGE) |
 |---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| Một dạng phê duyệt sai mà cổng chưa kiểm (bảng `approvals` cấp nhầm hoặc cập nhật trễ, mã do người khác ngoài trưởng ca cấp) lọt qua, khiến nhân viên lại kiểm tay 100% | Vừa | Cao: ở mốc prepared, 36 ca bị ùn, chờ lâu nhất 216 phút, chi phí 11.323đ/ticket > làm tay 10.000đ, ROI −2,05 | NV-TUNG (Lê Thanh Tùng) | Report: dòng "nhân viên kiểm lại quyết định tự động (%)" > 10%, hoặc dòng "Niềm tin của nhân viên duyệt" khác ĐẠT, hoặc "số ca bị ùn" ≥ 1 | Tạm chuyển mọi khoản trên hạn mức 200.000đ cho NV-HANH duyệt; NV-OANH rà các mã đã dùng trong ngày; sửa cổng [1] rồi chạy lại `grade --incident S8` và bộ nền | Nếu xảy ra trong pilot: chọn **Thu hẹp** (chỉ tự hoàn dưới hạn mức) chứ không Tiếp tục; trước Bước đánh giá 2 phải đo tỉ lệ kiểm lại thật của nhân viên | MANAGE |
 
 Quy tắc: **mỗi dòng phải đổi được một quyết định.** Cột "Dấu hiệu" phải là một metric có trong `monitors.py` hoặc trong report.
 
@@ -417,26 +429,30 @@ Ghi các dòng đổi sau sự cố. Mỗi dòng vẫn phải có một PIC có 
 
 | # nhóm | Trạng thái mới (Xong / Chưa / Không áp dụng) | Bằng chứng mới (mã lần chạy, mục phiếu, số trong report) | PIC |
 |---|---|---|---|
-| | | | |
-| | | | |
+| 1 · Chất lượng | Xong | `R-S8-after-20261119-172654-0a44b6`: `pass_rate` 1,0, `pass_k` 1,0 trên gói S8 (prepared 0,8654); bộ nền vẫn 1,0, không ca nào mới hỏng | Trần Trung Kiên |
+| 3 · Bảo mật | Chưa | Cổng [1] (C7, C9) chặn khoản vượt hạn mức không có mã hợp lệ, kể cả khi directive trong `checkout_note` bỏ qua bước tìm phê duyệt. Vẫn hở: khoản dưới hạn mức theo directive vẫn giữ `payer = MERCHANT` | Trần Trung Kiên |
+| 4 · Quyền hạn | Xong | `write_gate` trả quyền duyệt khoản trên hạn mức về NV-HANH khi mã sai (C3.1); người giữ công tắc NV-TUNG có trong `operations.pic` | Trần Trung Kiên |
+| 6 · Chi phí | Xong | `R-S8-after-20261119-172654-0a44b6`: 2.952đ/ticket (prepared 11.323đ), ROI 2,39 (prepared −2,05), 0 kho đắt hơn làm tay | Hoàng Xuân Lĩnh |
+| 7 · Vận hành | Xong | `operations` đủ (C7 dòng [2] · [3]); Runbook 1–3 và giờ cao điểm (Phiếu B B7.5, B7.6), Runbook 4–5 dưới đây; after: kiểm lại 10%, 0 ca ùn, chờ lâu nhất 5 phút; chỉ số mới `high_value_refund_rate` (C8) | Nguyễn Thành Nam |
+| 8 · Con người, pháp lý | Xong | After: lỗi oan cho hãng 0 (prepared 30), lộ dữ liệu cá nhân 0; NV-HANH chỉ còn đứng tên các khoản có mã hợp lệ; mục `legal` giữ nguyên | Nguyễn Thành Nam |
 
 ### Runbook 4 · Sau sự cố trên thẻ (vòng 2)
 
 | Câu hỏi | Trả lời |
 |---|---|
-| Tín hiệu nào ở Runbook 2 (Phiếu B mục B7.5) lẽ ra phải báo trước sự cố này? Nó đã có chưa? | |
-| Bàn thêm hoặc đổi ngưỡng nào, từ bao nhiêu thành bao nhiêu? | |
-| Bàn đổi gì về **người** (số người trực, ai đứng tên, ai được gọi)? | |
-| Bàn đổi gì về **phạm vi** hoặc **quy trình** (kiểm mẫu, ghi chú giải thích, trần)? | |
-| Nói gì với bên thứ ba bị ảnh hưởng (hãng, shop, người nhận, nhân viên duyệt), ai nói, trong bao lâu? | |
-| Dữ liệu cá nhân nào đã rời hệ thống mà không thu hồi được? Báo cho ai? | |
-| Sự cố lộ ra trước qua số máy đo, phản hồi của người, hay đọc nội dung? Nguồn nào bàn chưa có? | |
+| Tín hiệu nào ở Runbook 2 (Phiếu B mục B7.5) lẽ ra phải báo trước sự cố này? Nó đã có chưa? | Dòng "Thời gian chờ người duyệt lâu nhất" và "Số ca bị ùn" đã có và sẽ báo ĐỎ (prepared: 216 phút, 36 ca). Nhưng đó là hậu quả, đến sau khi nhân viên đã mất tin. Chưa có tín hiệu cho nguyên nhân: tỉ lệ nhân viên kiểm lại và số khoản hoàn dùng mã không hợp lệ |
+| Bàn thêm hoặc đổi ngưỡng nào, từ bao nhiêu thành bao nhiêu? | Thêm tín hiệu "nhân viên kiểm lại quyết định tự động (%)" (report): bình thường 10%; vàng > 10%; đỏ ≥ 50% hoặc dòng "Niềm tin của nhân viên duyệt" khác ĐẠT → tạm chuyển mọi khoản trên hạn mức cho NV-HANH. Thêm tín hiệu "số khoản hoàn dùng mã không hợp lệ": từ "chưa theo dõi" thành đỏ khi ≥ 1. Các ngưỡng cũ giữ nguyên (`max_queue_wait_minutes` = 60) |
+| Bàn đổi gì về **người** (số người trực, ai đứng tên, ai được gọi)? | Không đổi số người trực (1): thêm người tốn khoảng +1.364đ/ticket và không chữa nguyên nhân. Người đứng tên vẫn là NV-HANH, nhưng chị chỉ đứng tên khoản có mã hợp lệ. NV-HANH được báo qua `#logix-refund-alert` mỗi khi cổng chặn một mã sai |
+| Bàn đổi gì về **phạm vi** hoặc **quy trình** (kiểm mẫu, ghi chú giải thích, trần)? | Phạm vi giữ `all`. Giữ kiểm mẫu 10% và ghi chú giải thích. Quy trình mới: một mã duyệt chỉ dùng cho đúng ticket chị Hạnh cấp; mã hết hạn, đã dùng, đã thu hồi hay vượt `max_vnd` thì cổng chặn và chuyển chị. NV-OANH đối chiếu hằng tuần danh sách mã đã dùng với bảng `approvals` |
+| Nói gì với bên thứ ba bị ảnh hưởng (hãng, shop, người nhận, nhân viên duyệt), ai nói, trong bao lâu? | NV-TUNG nói với chị Hạnh và ca CSKH trong ngày: trước đây hệ thống lấy mã đầu tiên tìm được; giờ mã phải đạt đủ năm điều kiện; cho xem report after. NV-OANH báo kiểm toán nội bộ trong 1 ngày rằng các khoản 228.000–235.000đ dùng mã sai không do chị Hạnh duyệt. Các hãng bị ghi lỗi trên những ca này (35 lỗi oan ở base): NV-OANH huỷ lỗi và báo hãng trong 2 ngày làm việc |
+| Dữ liệu cá nhân nào đã rời hệ thống mà không thu hồi được? Báo cho ai? | Không có: lộ dữ liệu cá nhân = 0 ở cả ba mốc, nên không cần báo |
+| Sự cố lộ ra trước qua số máy đo, phản hồi của người, hay đọc nội dung? Nguồn nào bàn chưa có? | Lộ ra qua phản hồi của người: tin nhắn của chị Hạnh sau bảng kiểm toán nội bộ, không phải qua số máy đo. Nguồn chưa có: chỉ số đếm khoản hoàn dùng mã không hợp lệ. `high_value_refund_rate` chỉ đếm khoản lớn, after vẫn 0,1154 |
 
 ### Runbook 5 · Ba kịch bản "nếu … thì …" cho tuần đầu chạy thử thật
 
-1. Nếu số ticket tăng gấp ___ lần trong một giờ thì: …
-2. Nếu nhà cung cấp LLM lỗi quá ___ phút thì: …
-3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: …
+1. Nếu số ticket tăng gấp 3 lần trong một giờ thì: khoảng 8 ticket/giờ, 2–3 ca/giờ cần người, vẫn dưới công suất 6 ca/giờ. NV-HANH theo dõi hàng chờ; hàng chờ ≥ 6 ca hoặc chờ lâu nhất ≥ 40 phút thì gọi thêm một nhân viên CSKH; có ca chờ quá 60 phút thì NV-TUNG thu hẹp `pilot_scope` còn `{"mode": "percent", "percent": 50}` (khớp Phiếu B B7.6).
+2. Nếu nhà cung cấp LLM lỗi quá 15 phút thì: NV-TUNG tắt `file_carrier_fault`, vì khi LLM lỗi agent chuyển sang fail-open và ghi lỗi hãng mà không xét nguyên nhân; khoản hoàn vẫn qua cổng `write_gate`. Lỗi quá 60 phút thì tắt `issue_refund` tự động, ticket chuyển NV-HANH hoặc làm tay; báo `#logix-refund-alert`.
+3. Nếu người duyệt báo không tin một quyết định của trợ lý thì: NV-HANH ghi mã ticket vào `#logix-refund-alert`; NV-TUNG xem trace và ghi chú giải thích trong 30 phút. Nếu quyết định dùng mã không hợp lệ hoặc sai số tiền thì chuyển mọi khoản trên hạn mức cho NV-HANH tới khi sửa cổng xong; nếu quyết định đúng thì gửi lại ghi chú và căn cứ cho người duyệt. Giữ kiểm mẫu 10%, không quay về kiểm tay toàn bộ.
 
 ---
 
