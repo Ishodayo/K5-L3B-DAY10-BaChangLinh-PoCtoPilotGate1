@@ -24,8 +24,8 @@ rồi mới chạy đánh giá. Khối 1 không sửa code.
 
 ### Câu 1.2 · Mục tiêu nhìn từ hai người
 
-- Chị Oanh, kế toán đối soát (không dùng trợ lý, nhưng phải khớp sổ với hãng và shop mỗi tuần): …
-- Chị Hạnh, trưởng ca CSKH (phải duyệt những ca trợ lý chuyển sang): …
+- Chị Oanh, kế toán đối soát (không dùng trợ lý, nhưng phải khớp sổ với hãng và shop mỗi tuần): cuối mỗi tuần, mọi dòng do trợ lý ghi (tiền hoàn trong sổ cái, lỗi ghi cho hãng, khoản trừ shop) đều truy được về một căn cứ trong nguồn sự thật, để chị đối soát xong mà **không phải sửa tay dòng nào**. Căn cứ gồm: chính sách đang hiệu lực (REFUND-v3), tracking DB (`delay_cause`, ngày giao) và phê duyệt còn hạn (PRD v1.1 §2: "số tiền hoàn không vượt approval còn hạn"). Cụ thể: 0 lỗi ghi oan cho hãng, vì hãng nhỏ như GHSH và DNB bị phạt 150.000đ và 80.000đ mỗi lỗi, và bị đình chỉ sau 3 lỗi trong 7 ngày. Và 0 khoản trừ sai tiền shop.
+- Chị Hạnh, trưởng ca CSKH (phải duyệt những ca trợ lý chuyển sang): mỗi ca trợ lý chuyển sang được nhận xử lý **trong 60 phút** (`review_sla_minutes`), số ca không vượt sức duyệt của người trực (6 ca/giờ/người), và mỗi ca kèm lý do chuyển và ghi chú giải thích để chị duyệt nhanh. Trợ lý chỉ chuyển những ca thật sự cần người. Đó là các ca trong phạm vi PRD v1.1 §2: vượt hạn mức tự động 200.000đ của REFUND-v3, đơn không thuộc khách đang hỏi, lỗi thứ 3 của cùng một hãng trong ngày, hoặc hoàn cho một khách vượt 300.000đ/ngày. Có vậy chị mới chuyển được từ kiểm lại bằng tay sang kiểm mẫu (`staff_behavior.trust_conditions`: có ghi chú giải thích, kiểm mẫu tối thiểu 10%, người duyệt đứng tên là NV-HANH).
 
 ---
 
@@ -48,12 +48,12 @@ trợ lý có đang gây thiệt hại cho bên ngoài LogiX không; không có 
 
 | | Offline, cho MỘT bước (câu 1.3) | Telemetry production (câu 1.4) |
 |---|---|---|
-| **Bước / hành vi được đo** | | |
-| **Thước đo** (một câu, có đơn vị) | | |
-| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | | |
-| **Khung thời gian / ngưỡng báo động** | (không áp dụng) | |
-| **Điểm mù** (thước đo này KHÔNG thấy gì) | | |
+| **Bước / hành vi được đo** | | Trợ lý ghi lỗi cho hãng vận chuyển (`file_carrier_fault`). Bên chịu thiệt nằm ngoài LogiX: hãng bị phạt tiền và có thể bị đình chỉ |
+| **Thước đo** (một câu, có đơn vị) | | Số lỗi trợ lý ghi cho một hãng mà **tracking DB không có căn cứ** (lỗi/hãng/ngày), kèm tổng số lỗi tự động ghi cho hãng đó (lỗi/hãng/ngày và lỗi/hãng/7 ngày) |
+| **Dữ liệu** (lấy ở đâu, bao nhiêu, ai gán nhãn) | | Bảng lỗi hãng do trợ lý ghi (`fault_rows`: hãng, kiện, ngày ghi). Tracking DB của kiện đó (`delay_cause`, `promised_date`, `delivered_date`). Chính sách đang hiệu lực ngày ghi (`fault_causes`, `late.min_days_fee`). Trần trong `ops_limits` và `carriers[].suspend_after_strikes_7d`. Lấy toàn bộ lỗi ghi trong ngày. **Không cần người gán nhãn**: "có căn cứ" so trực tiếp với nguồn sự thật. Tín hiệu đến chậm hơn (để đối chiếu): số khiếu nại của hãng trong buổi đối soát tuần của chị Oanh |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | | Với mỗi lỗi: có căn cứ khi `delay_cause` thuộc `fault_causes` của chính sách hiệu lực **và** độ trễ theo DB ≥ `min_days_fee` (`helpers.carrier_at_fault`). Mỗi hãng, mỗi ngày: `không_căn_cứ` = số lỗi không có căn cứ; `tổng` = số lỗi đã ghi. Ca thiếu tracking (không tìm thấy kiện, thiếu `delay_cause`) không loại khỏi mẫu số: đếm vào `không_căn_cứ` và ghi riêng là "không kiểm được", vì nghiêng về bảo vệ hãng |
+| **Khung thời gian / ngưỡng báo động** | (không áp dụng) | Đếm theo ngày và cuốn chiếu 7 ngày, xét mỗi khi có lỗi mới được ghi. **Đỏ:** `không_căn_cứ` ≥ 1 ở bất kỳ hãng nào → báo kênh trực, NV-TUNG tắt `file_carrier_fault`, chị Oanh rà lại lỗi đã ghi trong ngày. **Vàng:** một hãng có ≥ 3 lỗi tự động trong ngày (vượt `max_auto_strikes_per_carrier_per_day` = 2), hoặc trong 7 ngày chỉ còn 1 lỗi nữa là tới ngưỡng đình chỉ (GHSH, DNB: 2/3) → lỗi tiếp theo của hãng đó chuyển chị Hạnh duyệt |
+| **Điểm mù** (thước đo này KHÔNG thấy gì) | | Không thấy khi chính tracking DB ghi sai `delay_cause`, vì sai từ nguồn. Không thấy thiệt hại cho khách (hoàn thiếu) hay cho shop (trừ sai tiền). Không thấy lộ dữ liệu cá nhân trong thông báo gửi hãng (`notify_carrier`), cần một tín hiệu riêng. Nếu tính theo nhầm phiên bản chính sách sẽ báo sai: từ 01/12/2026 REFUND-v4 bỏ `FORCE_MAJEURE` khỏi `fault_causes` |
 
 **Ví dụ mẫu (bước "chọn độ trễ" của agent, đừng chép):**
 Thước đo: tỉ lệ lần chạy mà độ trễ agent dùng để tính tiền khác độ trễ theo tracking DB. Dữ liệu: sự kiện `proposal.delay_days_used`
