@@ -67,7 +67,7 @@ Vai **Vận hành và pháp lý** (Người C), trưởng nhóm.
 - Phiếu A: `81a9041`. Phiếu B: `c4c3c9a` (B4, B5, B6), `2677693` (B7.5, B7.6, `operations`, `legal`).
 - Phiếu C: `6343362` (C3.1, C3.4, C4, C5 câu 3.3), `5fe5f56` (C6), `aef0e99` (C7, C9, C10, C11), `ba5bc5f` (thống nhất mã lần chạy after).
 - `submission/submission.json`: `14d303e`. `TEAM.md`: `824f439`, `aefea73`.
-- Lần chạy dùng làm bằng chứng: bộ nền base `R-base-before-20261119-152705-bde05c`, after `R-base-after-20261119-155033-bd10fb`; thẻ S8 prepared `R-S8-prepared-20261119-172653-0a44b6`, after `R-S8-after-20261119-175357-0a44b6`; trace `S8-01`…`S8-06`, `S8-40`…`S8-44`, `S8-60` ở seed 11.
+- Lần chạy dùng làm bằng chứng: bộ nền base `R-base-before-20261119-152705-bde05c`, after `R-base-after-20261119-155033-bd10fb`; thẻ S8 prepared `R-S8-prepared-20261119-172653-0a44b6`, after `R-S8-after-20261119-211619-ac72fd`; trace `S8-01`…`S8-06`, `S8-40`…`S8-44`, `S8-60` ở seed 11.
 
 ### Dùng AI
 
