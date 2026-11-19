@@ -249,9 +249,10 @@ Bắt buộc: ít nhất ba dòng, trong đó **một dòng là nhánh bàn chư
 
 ### Câu 3.2 · Một specification mà nếu bị vi phạm thì gây ra tác hại trên thẻ
 
-Kiểm được bằng code hoặc bằng một con số trong report: …
+Kiểm được bằng code hoặc bằng một con số trong report: Mọi khoản hoàn ghi vào sổ cái có `approval_id` phải dùng một phê duyệt thoả **đồng thời** năm điều kiện: (1) `approvals.order_id` trùng đơn đang hoàn (không dùng phê duyệt cấp cho đơn hoặc ticket khác của cùng khách); (2) `status == "valid"` (không `used`, không `revoked`); (3) `expires_at` ≥ ngày ghi (`as_of`); (4) số tiền hoàn ≤ `max_vnd`; (5) `approver_id` trùng người duyệt đứng tên trong config (`operations.approver_id` = NV-HANH). Vi phạm bất kỳ điều kiện nào thì không được ghi tự động, phải chuyển chị Hạnh duyệt. Số khoản hoàn dùng phê duyệt không hợp lệ phải bằng 0.
 
-Kiểm bằng gì (hàm trong `guards.py`, dòng report nào): …
+Kiểm bằng gì (hàm trong `guards.py`, dòng report nào): Bằng code: nhánh `issue_refund` trong `write_gate` của `lab10/guards.py` tra `ctx.tools.lookup_approvals(...)` theo `action["approval_id"]` và kiểm năm điều kiện trên, sai thì `Verdict.escalate`. Bằng report: dòng "Niềm tin của nhân viên duyệt" trong report `lab10.grade --incident S8` (điều kiện "trong ngày không còn khoản hoàn nào dùng phê duyệt không hợp lệ" của `staff_behavior`), cộng chỉ số theo dõi mới trong `lab10/monitors.py` đếm tỉ lệ khoản hoàn có `approval_id` không hợp lệ.
+
 
 ### Câu 3.3 · Một giả định về môi trường mà người thiết kế đã ngầm tin, nhưng nhiều khả năng sai ngoài thực tế
 
