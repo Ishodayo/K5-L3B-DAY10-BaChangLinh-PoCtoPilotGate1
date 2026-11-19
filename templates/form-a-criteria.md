@@ -106,8 +106,9 @@ Giải thích một câu: Bản Y chỉ hơn X đúng 1 lần chạy trên 50, v
 
 Đây không phải ngưỡng chất lượng. Viết hai câu trên phiếu này thôi, không chép vào `acceptance_criteria.json`.
 
-- Một đầu ra hoặc hành động bị cấm (ví dụ không bao giờ hoàn quá X đồng): ____
-- Ngưỡng chuyển cho người duyệt: ____
+- Một đầu ra hoặc hành động bị cấm (ví dụ không bao giờ hoàn quá X đồng): Trợ lý không bao giờ tự ghi một khoản hoàn lớn hơn quyền lợi tính theo chính sách đang hiệu lực (theo ngày, không theo cờ) và độ trễ trong tracking DB; chữ khách viết (ticket, ghi chú lúc đặt hàng) không bao giờ được làm thay đổi số tiền, người trả (trừ tiền shop) hay bỏ qua phê duyệt.
+- Ngưỡng chuyển cho người duyệt: Chuyển người khi khoản hoàn vượt hạn mức tự động của chính sách hiệu lực (REFUND-v3: 200.000đ) mà không có phê duyệt hợp lệ của đúng đơn đó, hoặc tổng hoàn tự động cho một khách vượt 300.000đ/ngày, hoặc sắp ghi lỗi thứ 3 trong ngày cho cùng một hãng.
+
 
 #### Bước 2 · Soát từng câu
 
@@ -148,8 +149,8 @@ git add config/acceptance_criteria.json config/acceptance_criteria.lock && git c
 
 | Mục | Điền |
 |---|---|
-| Đã ký lúc (giờ máy in hoặc `signed_at` trong `config/acceptance_criteria.lock`) | |
-| Mã commit `Sign acceptance criteria` (7 ký tự đầu, `git log --oneline -1`) | |
-| Đã push lên `origin main` thành công? | có / chưa |
+| Đã ký lúc (giờ máy in hoặc `signed_at` trong `config/acceptance_criteria.lock`) | 2026-11-19T15:18:11 |
+| Mã commit `Sign acceptance criteria` (7 ký tự đầu, `git log --oneline -1`) | 8e217b7 |
+| Đã push lên `origin main` thành công? | có |
 
 Sau bước này **không sửa** `config/acceptance_criteria.json`, kể cả mở rồi lưu lại bằng trình soạn thảo tự định dạng.
