@@ -1,6 +1,6 @@
 # Phiếu B · Đo, rủi ro, cổng vòng 1 và quyết định v1 · Khối 2A + 2B + chốt (phút 65–115)
 
-**Bàn:** ______
+**Bàn:** K5-L3B-DAY10-BaChangLinh-PoCtoPilotGate1
 
 Tiêu chí đã ký ở Phiếu A. Từ phút 65 bàn mới được chạy trợ lý. Khối 2A (65–85) chưa sửa code hay config. Khối 2B (85–105) sửa
 `lab10/guards.py` và `config/operating_gates.json`. Phút 105–115 chốt cổng vòng 1 rồi viết quyết định v1. Sau phút 115 không sửa phiếu này
@@ -320,10 +320,11 @@ Mỗi con số kèm một câu lý do, lấy từ `data/world.json` → `ops_lim
 
 | Khoá | Giá trị bàn đặt | Lý do (một câu, có số) |
 |---|---|---|
-| `business.daily_refund_cap_vnd` | | |
-| `business.cost_budget_per_ticket_vnd` | | |
-| `business.pilot_scope` (all / warehouse / percent) | | |
-| `business.roi_min` | | |
+| `business.daily_refund_cap_vnd` | 2000000 | Bằng ngân sách hoàn tự động mỗi ngày Finance đã duyệt (`ops_limits.daily_auto_refund_budget_vnd` = 2.000.000đ); khoản nào làm vượt trần thì trợ lý không tự ghi mà chuyển người duyệt, nên tiền hoàn tự động trong ngày không bao giờ vượt cam kết với Finance. |
+| `business.cost_budget_per_ticket_vnd` | 1500 | Bằng trần tiền LLM mỗi ticket đã thống nhất (`ops_limits.max_llm_cost_per_ticket_vnd` = 1.500đ); ticket bình thường tốn khoảng 700–900đ (200 nền tảng + 150 đọc + 1đ/4 ký tự + 200 kiểm chính sách + 100 xác nhận), nên chỉ ticket dài bất thường (nghi chèn lệnh) mới chạm trần và bị chuyển người đọc. |
+| `business.pilot_scope` (all / warehouse / percent) | `{"mode": "all"}` | Vòng 1 giữ toàn bộ để đo đủ mọi kho: report base cho thấy chưa kho nào đắt hơn làm tay (DN đắt nhất cũng chỉ 4.586đ/ticket so với 10.000đ), nên chưa có căn cứ cắt; sẽ thu hẹp ở vòng 2 nếu sự cố làm một kho vượt chi phí làm tay hoặc tỉ lệ chuyển người vượt 0,25. |
+| `business.roi_min` | 1.0 | Khớp `roi_min` đã ký: ROI = (10.000đ làm tay − chi phí) / chi phí, nên ROI ≥ 1,0 tương đương chi phí mỗi ticket ≤ 5.000đ, tức một nửa chi phí làm tay (`ops_facts.manual_cost_per_ticket_vnd` = 10.000đ). |
+
 
 ### B7.5 · Câu 2.10 · Cổng con người, vận hành, pháp lý + Runbook phần 1–3
 
