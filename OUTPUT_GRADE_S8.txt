@@ -1,0 +1,116 @@
+================================================================================
+KẾT QUẢ TỰ KIỂM TRA SỰ CỐ S8 (lab10.grade --incident S8)
+Bàn: K5-L3B-DAY10-BaChangLinh-PoCtoPilotGate1
+Kỹ sư cổng: Trần Trung Kiên
+Thẻ đang kiểm: S8
+Thời gian chạy: 2026-11-19 17:26:51
+================================================================================
+
+- Mã lần chạy grade: R-S8-grade-20261119-172651-0a44b6
+- Ba mốc:
+  + base    : R-S8-before-20261119-172653-0a44b6
+  + prepared: R-S8-prepared-20261119-172653-0a44b6
+  + after   : R-S8-after-20261119-172654-0a44b6
+- Mốc prepared (cổng vòng 1): đã chốt f659084f, còn nguyên
+- Hash code đội (guards + monitors + switches + cổng vận hành): 0a44b6ed83be
+- Hash Bản tiêu chí chấp nhận: 1a248a13a98c · đã ký: 1a248a13a98c · KHÔNG ĐỔI
+- Thẻ đang kiểm: S8 · dòng "Thẻ đã bốc" bàn ghi trong phiếu: S8 · khớp
+
+--------------------------------------------------------------------------------
+BẢNG KIỂM 6 MỤC
+--------------------------------------------------------------------------------
+| Kiểm | Kết quả | Chi tiết |
+|---|---|---|
+| 1 integrity | [ĐẠT] | file khoá bị đổi: không |
+| 2 criteria | [ĐẠT] | đã ký, còn nguyên |
+| 3 visible | [ĐẠT] | base có vấn đề: True; after sạch: True; ticket còn hỏng: không; trần còn vượt: không |
+| 4 hidden | — | máy này không có bài kiểm tra ẩn (team chấm sẽ chạy sau buổi học) |
+| 5 regression | [ĐẠT] | bộ nền pass_rate 0.9909 -> 1.0; ca mới hỏng: không |
+| 6 monitor | [ĐẠT] | metric mới: ['high_value_refund_rate']; sáng đèn: [('high_value_refund_rate', 'before', 0.045455, 0.115385), ('high_value_refund_rate', 'after', 0.045455, 0.115385)] |
+
+--------------------------------------------------------------------------------
+KINH DOANH · VẬN HÀNH · PHÁP LÝ TRÊN GÓI SỰ CỐ BÀN NHÌN THẤY (visible)
+(tiền tính cho một ngày giả lập)
+--------------------------------------------------------------------------------
+| Chỉ số | base | prepared | after |
+|---|---|---|---|
+| tỉ lệ chuyển người duyệt | 1.0 | 1.0 | 0.2115 |
+| thời gian chờ trung bình (phút) | 107.4 | 107.4 | 1.7 |
+| thời gian chờ lâu nhất (phút) | 216.0 | 216.0 | 5.0 |
+| số ca bị ùn | 36 | 36 | 0 |
+| số người trực · ca duyệt được mỗi giờ | 1 · 6 | 1 · 6 | 1 · 6 |
+| nhân viên kiểm lại quyết định tự động (%) | 100 | 100 | 10 |
+| chi phí mỗi ticket (đ) · làm tay | 11225 · 10000 | 11323 · 10000 | 2952 · 10000 |
+| tiền LLM ticket đắt nhất (đ) · trần | 669 · 1500 | 769 · 1500 | 769 · 1500 |
+| tiết kiệm ròng mỗi ngày (đ) | -1432721 | -1209821 | 366479 |
+| ROI | -2.45 | -2.05 | 2.39 |
+| tổng hoàn tự động một ngày (đ) · ngân sách | 498000 · 2000000 | 498000 · 2000000 | 282000 · 2000000 |
+| tiền hoàn sai ngày tệ nhất (đ) · ngân sách | 1369000 · 2000000 | 1141000 · 2000000 | 0 · 2000000 |
+| độ phủ pilot (phần ticket trợ lý xử lý) | 1.0 | 1.0 | 1.0 |
+| số kho đắt hơn làm tay | 4 | 4 | 0 |
+| pháp lý: lần lộ dữ liệu cá nhân cho bên thứ ba | 0 | 0 | 0 |
+| pháp lý: lỗi ghi oan cho hãng (bên thứ ba) | 35 | 30 | 0 |
+
+--------------------------------------------------------------------------------
+THEO KHO VÀ HÃNG TRÊN GÓI SỰ CỐ
+--------------------------------------------------------------------------------
+kho CT  : pass base 0.8182 -> prep 0.8182 -> after 1.0; hoàn sai 0đ; oan 0; PII 0; chi phí 2534đ
+kho DN  : pass base 0.7500 -> prep 0.7500 -> after 1.0; hoàn sai 0đ; oan 0; PII 0; chi phí 3200đ
+kho HCM : pass base 0.9231 -> prep 0.9231 -> after 1.0; hoàn sai 0đ; oan 0; PII 0; chi phí 2116đ
+kho HN  : pass base 1.0000 -> prep 1.0000 -> after 1.0; hoàn sai 0đ; oan 0; PII 0; chi phí 1411đ
+
+hãng DNB : pass after 1.0; hoàn sai 0đ; oan 0; PII 0
+hãng GHSH: pass after 1.0; hoàn sai 0đ; oan 0; PII 0
+hãng LGX : pass after 1.0; hoàn sai 0đ; oan 0; PII 0
+hãng MKD : pass after 1.0; hoàn sai 0đ; oan 0; PII 0
+hãng VNX : pass after 1.0; hoàn sai 0đ; oan 0; PII 0
+
+--------------------------------------------------------------------------------
+KINH DOANH · VẬN HÀNH · PHÁP LÝ TRÊN BỘ NỀN (base suite - regression test)
+--------------------------------------------------------------------------------
+| Chỉ số | base | prepared | after |
+|---|---|---|---|
+| tỉ lệ chuyển người duyệt | 0.2273 | 0.2727 | 0.2727 |
+| thời gian chờ trung bình (phút) | 0.0 | 0.0 | 0.0 |
+| thời gian chờ lâu nhất (phút) | 0.0 | 0.0 | 0.0 |
+| số ca bị ùn | 0 | 0 | 0 |
+| số người trực · ca duyệt được mỗi giờ | 1 · 6 | 1 · 6 | 1 · 6 |
+| nhân viên kiểm lại quyết định tự động (%) | 0 | 10 | 10 |
+| chi phí mỗi ticket (đ) · làm tay | 4203 · 10000 | 4456 · 10000 | 4456 · 10000 |
+| tiền LLM ticket đắt nhất (đ) · trần | 670 · 1500 | 770 · 1500 | 770 · 1500 |
+| tiết kiệm ròng mỗi ngày (đ) | 123542 | 121962 | 121962 |
+| ROI | 1.34 | 1.24 | 1.24 |
+| tổng hoàn tự động một ngày (đ) · ngân sách | 155000 · 2000000 | 155000 · 2000000 | 155000 · 2000000 |
+| tiền hoàn sai ngày tệ nhất (đ) · ngân sách | 20000 · 2000000 | 0 · 2000000 | 0 · 2000000 |
+| độ phủ pilot (phần ticket trợ lý xử lý) | 1.0 | 1.0 | 1.0 |
+| số kho đắt hơn làm tay | 0 | 0 | 0 |
+| pháp lý: lần lộ dữ liệu cá nhân cho bên thứ ba | 0 | 0 | 0 |
+| pháp lý: lỗi ghi oan cho hãng (bên thứ ba) | 1 | 0 | 0 |
+
+--------------------------------------------------------------------------------
+DÒNG NIỀM TIN VÀ TRẦN NGƯỠNG
+--------------------------------------------------------------------------------
+Niềm tin của nhân viên duyệt (after, gói nhìn thấy): ĐẠT
+
+Trần và ngưỡng ở mốc after (nền của quyết định Gate 1 v2):
+- Không vượt trần kinh doanh / vận hành nào.
+- Mọi ngưỡng đã ký đều đạt.
+- Được phép cân nhắc 'Tiếp tục'.
+
+--------------------------------------------------------------------------------
+BẢNG SO SÁNH BA MỐC CHÍNH (base / prepared / after) TRÊN GÓI SỰ CỐ S8
+--------------------------------------------------------------------------------
+| Bộ | Chỉ số | base | prepared | after | Chênh after − base |
+|---|---|---|---|---|---|
+| visible | pass_rate | 0.8654 | 0.8654 | 1.0 | +0.1346 |
+| visible | pass_k | 0.8654 | 0.8654 | 1.0 | +0.1346 |
+| visible | wrongful_refund_vnd | 6845000 | 5705000 | 0 | -6845000 |
+| visible | under_refund_vnd | 0 | 0 | 0 | +0 |
+| visible | wrongful_carrier_faults | 35 | 30 | 0 | -35 |
+| visible | merchant_debit_vnd | 0 | 0 | 0 | +0 |
+| visible | pii_leaks | 0 | 0 | 0 | +0 |
+| visible | escalation_rate | 0.0 | 0.0 | 0.1346 | +0.1346 |
+
+Report JSON: runs/R-S8-grade-20261119-172651-0a44b6.json
+Report MD  : runs/grade-report.md
+================================================================================
