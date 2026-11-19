@@ -61,15 +61,42 @@ def write_gate(ctx, action):
                 cause = parcel.get("delay_cause") or ("CARRIER" if db_delay > 0 else None)
                 entitled = H.entitlement_vnd(policy, order, db_delay, cause)
 
-                # Kiểm tra phê duyệt nếu có: phải đúng mã order_id
                 appr_id = action.get("approval_id")
-                if appr_id:
+                tid = action.get("ticket_id") or ctx.ticket.get("ticket_id")
+                amount = action.get("amount_vnd", 0)
+                auto_limit = policy.get("auto_limit_vnd", 200000)
+
+                # Cổng kiểm soát phê duyệt bồi thường (thẻ sự cố S8: chống dùng sai mã duyệt)
+                if appr_id or amount > auto_limit:
+                    if not appr_id:
+                        return Verdict.escalate("Khoản hoàn vượt hạn mức tự động nhưng chưa có mã phê duyệt")
                     apprs = ctx.tools.lookup_approvals(approval_id=appr_id)
-                    if apprs and apprs[0].get("order_id") and apprs[0]["order_id"] != order_id:
-                        return Verdict.deny("Phê duyệt không thuộc về đơn hàng này")
+                    if not apprs:
+                        return Verdict.escalate("Mã phê duyệt không tồn tại trong hệ thống")
+                    appr = apprs[0]
+                    if appr.get("ticket_id") != tid:
+                        return Verdict.escalate(f"Mã phê duyệt cấp cho ticket khác ({appr.get('ticket_id')})")
+                    if appr.get("order_id") and appr.get("order_id") != order_id:
+                        return Verdict.escalate(f"Mã phê duyệt cấp cho đơn hàng khác ({appr.get('order_id')})")
+                    if appr.get("status") != "valid":
+                        return Verdict.escalate(f"Mã phê duyệt không ở trạng thái hợp lệ ({appr.get('status')})")
+                    if appr.get("expires_at", "") < ctx.as_of:
+                        return Verdict.escalate("Mã phê duyệt đã hết hạn")
+                    if appr.get("max_vnd", 0) < amount:
+                        return Verdict.escalate(f"Khoản hoàn {amount}đ vượt quá hạn mức phê duyệt {appr.get('max_vnd')}đ")
+
+                # Cổng kiểm tra trần hoàn tự động cho một khách trong ngày
+                customer_id = action.get("customer_id") or order.get("customer_id")
+                if customer_id and not appr_id:
+                    limits = ctx.tools.ops_limits()
+                    max_cust = limits.get("max_auto_refund_per_customer_per_day_vnd", 300000)
+                    past_refunds = ctx.tools.ledger_rows(customer_id=customer_id)
+                    spent_cust = sum(r.get("amount_vnd", 0) for r in past_refunds if not r.get("approval_id"))
+                    if spent_cust + amount > max_cust:
+                        return Verdict.escalate(f"Vượt trần hoàn tự động cho khách trong ngày ({max_cust}đ)")
 
                 # Nếu không có phê duyệt đặc biệt và số tiền đề xuất lệch với quyền lợi thực tế
-                if not appr_id and action.get("amount_vnd", 0) != entitled:
+                if not appr_id and amount != entitled:
                     if entitled <= 0:
                         return Verdict.deny("Đơn chưa đủ điều kiện hoàn tiền theo tracking DB")
                     return Verdict.modify("Sửa số tiền hoàn về đúng quyền lợi theo tracking DB", amount_vnd=entitled)

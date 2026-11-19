@@ -1,6 +1,6 @@
 # Phiếu C · Sự cố và quyết định v2 · Khối 3 (phút 125–200)
 
-**Bàn:** ______ · **Thẻ đã bốc:** ___ *(để trống tới phút 125; bốc số xong thì ghi đúng số đó, ví dụ `S3`. Lab Coach đối chiếu với sổ; lệnh tự kiểm tra in dòng này trong report.)*
+**Bàn:** K5-L3B-DAY10-BaChangLinh-PoCtoPilotGate1 · **Thẻ đã bốc:** S8
 
 Mở `incidents/Sx/card.md` của đúng số đã bốc. Các bước trên thẻ trỏ về đúng mục trong phiếu này. Mục C3 chỉ điền phần ứng với
 số thẻ của bàn; các phần khác để trống.
@@ -331,14 +331,14 @@ Thẻ S5 dùng mục này cho một con số kinh doanh: chi phí mỗi ticket t
 
 | | Chỉ số theo dõi mới của bàn |
 |---|---|
-| **Tên trong `MONITORS`** | |
-| **Bước / hành vi được đo** | |
-| **Thước đo** (một câu, có đơn vị) | |
-| **Dữ liệu** (trường nào của trial, không có nhãn) | |
-| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | |
-| **Khung thời gian / ngưỡng báo động** | |
-| **Điểm mù** (chỉ số này KHÔNG thấy gì) | |
-| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | |
+| **Tên trong `MONITORS`** | `high_value_refund_rate` |
+| **Bước / hành vi được đo** | Đo lường tỉ lệ các ticket có khoản hoàn tiền lớn (> 200.000đ) hoặc cần dùng mã phê duyệt đặc biệt |
+| **Thước đo** (một câu, có đơn vị) | Tỉ lệ ticket có khoản hoàn lớn (> 200.000đ) hoặc có sự kiện dùng phê duyệt (`approval_used`), tính bằng % trên tổng số ticket |
+| **Dữ liệu** (trường nào của trial, không có nhãn) | `t["amount_vnd"]` và sự kiện `type == "approval_used"` trong danh sách sự kiện `t["events"]` |
+| **Cách tính** (công thức, mẫu số, cách xử lý ca thiếu dữ liệu) | `sum(t.get("amount_vnd", 0) > 200000 or any(e.get("type") == "approval_used" for e in t.get("events", [])) for t in trials) / max(1, len(trials))` |
+| **Khung thời gian / ngưỡng báo động** | Tính theo ngày giả lập (hoặc mỗi ca trực). Ngưỡng báo động: > 0,08 (8%) → cảnh báo Trưởng ca có dấu hiệu dồn dập các ca đòi bồi thường lớn bất thường |
+| **Điểm mù** (chỉ số này KHÔNG thấy gì) | Không phát hiện được các ca gian lận hoàn tiền nhỏ dưới 200.000đ lặp đi lặp lại nhiều lần |
+| Giá trị trên bộ nền · trên thẻ (đọc mục `monitor` của report) | Bộ nền: **0,0455** (4,55%) · Trên thẻ sự cố: **0,1154** (11,54%) → Monitor **sáng đèn** rõ rệt khi sự cố xảy ra |
 
 ---
 

@@ -19,7 +19,16 @@ def escalation_rate(trials):
     return sum(t["status"] == "escalated" for t in trials) / max(1, len(trials))
 
 
+def high_value_refund_rate(trials):
+    """Tỉ lệ ticket có khoản hoàn tiền lớn (> 200.000đ) hoặc cần dùng mã phê duyệt. Sáng đèn khi có đợt yêu cầu bồi thường lớn."""
+    return sum(
+        t.get("amount_vnd", 0) > 200000 or any(e.get("type") == "approval_used" for e in t.get("events", []))
+        for t in trials
+    ) / max(1, len(trials))
+
+
 MONITORS = {
     "escalation_rate": escalation_rate,     # có sẵn; KHÔNG tính là metric mới của đội
+    "high_value_refund_rate": high_value_refund_rate,  # monitor mới cho sự cố S8
 }
 STARTER_MONITORS = ("escalation_rate",)
