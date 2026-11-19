@@ -137,13 +137,13 @@ Vai **Kỹ sư cổng** (Người A).
 
 ### Bằng chứng
 
-- Commit code và phiếu: `56451b9` (C2, C8), `e0191f0` (C0, C7, C9).
+- Commit code và phiếu: `56451b9` (C2, C8), `e0191f0` (C0, C7, C9), `8d6dcb2` (cổng approver_id, chuẩn hoá trần khách, cập nhật submission).
 - File code: `lab10/guards.py`, `lab10/monitors.py`.
 - Mã lần chạy kiểm thử:
-  - prepared: `R-S8-prepared-20261119-172653-0a44b6`
-  - after S8: `R-S8-after-20261119-175357-0a44b6`
-  - after base: `R-base-after-20261119-175410-0a44b6`
-  - grade: `R-S8-grade-20261119-175815-0a44b6` (PASS-VISIBLE 100%)
+  - prepared: `R-S8-prepared-20261119-172653-0a44b6`, `R-S8-prepared-20261119-211646-ac72fd`
+  - after S8: `R-S8-after-20261119-175357-0a44b6`, `R-S8-after-20261119-211619-ac72fd`
+  - after base: `R-base-after-20261119-175410-0a44b6`, `R-base-after-20261119-211632-ac72fd`
+  - grade: `R-S8-grade-20261119-175815-0a44b6`, `R-S8-grade-20261119-211644-ac72fd` (PASS-VISIBLE 100%)
 
 ### Dùng AI
 
