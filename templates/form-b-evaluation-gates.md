@@ -30,7 +30,7 @@ Mọi con số trong quyết định Gate 1 phải trỏ về một dòng ở đ
 | # | Mã lần chạy | Bộ ticket · mốc | Đổi MỘT thứ gì so với lần trước | pass_rate (khoảng tin cậy 95%) | pass_k | Hoàn sai (đ) · lỗi hãng oan · lộ dữ liệu | Tỉ lệ chuyển người | Kết luận (một câu) |
 |---|---|---|---|---|---|---|---|---|
 | 1 | `R-base-before-20261119-152705-bde05c` | base · base | (baseline, chưa có cổng) | 0,9909 [0,9727; 1,0] | 0,9545 | 20.000đ · 1 · 0 | 0,2273 | Đạt 7/9 chỉ số, vi phạm 2 chỉ số an toàn bắt buộc (hoàn sai 20.000đ và 1 lỗi oan hãng tại T-002@55); cần dựng cổng phòng ngừa. |
-| 2 | | base · after | (cổng vòng 1, thử trước khi chốt) | | | | | |
+| 2 | `R-base-after-20261119-155033-bd10fb` | base · after | Cổng code: sửa tiền theo DB, chặn lỗi oan hãng, ghim policy | 1,0 [1,0; 1,0] | 1,0 | 0đ · 0 · 0 | 0,2273 | Đạt 9/9 tiêu chí (pass_rate 100%, pass_k 100%, 0 lỗi an toàn, ROI 1,38); cổng phòng ngừa hoạt động chính xác. |
 | 3 | | base · prepared | (cổng vòng 1 đã chốt) | | | | | |
 | 4 | | | | | | | | |
 
@@ -283,21 +283,21 @@ python3 -m unittest discover -s tests
 
 | # | Cổng (hàm và nhánh, ví dụ `write_gate` khi `tool == "issue_refund"`) | Ứng với dòng nào ở B6 / B4 | Chặn điều gì, dựa vào nguồn sự thật nào | Mã lần chạy `base · after` | Ca đang đúng nào bị hỏng? (phải là "không") |
 |---|---|---|---|---|---|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
+| 1 | `write_gate` khi `tool == "issue_refund"` | B6 dòng 1 (Model tin ngày trễ khách khai) & HAZOP WRONG | Chặn hoàn sai bằng cách tính lại tiền theo DB tracking (`H.entitlement_vnd`), chặn hoàn trùng qua sổ cái `ctx.tools.ledger_rows(order_id=...)`. | `R-base-after-20261119-155033-bd10fb` | không |
+| 2 | `write_gate` khi `tool == "file_carrier_fault"` | B6 dòng 1 (Phạt oan hãng) & HAZOP WRONG | Chặn ghi oan lỗi hãng bằng `H.carrier_at_fault`, gán đúng kiện/hãng trễ thực tế qua `H.ticket_parcel`. | `R-base-after-20261119-155033-bd10fb` | không |
+| 3 | `pre_guard` | B6 dòng 2 (Áp sai chính sách) & HAZOP INVALID | Ghim phiên bản chính sách đang có hiệu lực theo ngày `ctx.as_of` (`H.effective_policy`), tránh đọc cờ `index_active` sai. | `R-base-after-20261119-155033-bd10fb` | không |
 
 ### B7.2 · Câu 2.7 · Hai bước tránh rò rỉ dữ liệu
 
 Bàn đang chỉnh cổng tới khi 22 ticket bộ nền xanh hết. Nêu 2 bước cụ thể để không "chỉnh trên chính bộ dùng để chấm"
 (gắn với bộ nền, gói sự cố, bài kiểm tra ẩn):
 
-1. …
-2. …
+1. **Chỉ dựa vào nguồn sự thật và quy tắc nghiệp vụ khách quan, tuyệt đối không hardcode định danh:** Cổng chỉ tra cứu logic DB (`orders`, `tracking`, `policies`), tuyệt đối không viết điều kiện rẽ nhánh theo mã `ticket_id`, `customer_id`, `order_id` hay so khớp câu chữ cụ thể của 22 ticket để đảm bảo cổng xử lý đúng trên bộ test ẩn và khách hàng mới.
+2. **Thiết kế tập kiểm thử độc lập (Hold-out Behavioral Tests):** Xây dựng các test case kiểm tra tính chất hành vi riêng bằng cờ `--adhoc` với ngữ cảnh giả lập khác biệt hoàn toàn với bộ nền, dùng bộ adhoc này để kiểm chứng cổng trước khi chạy thử nghiệm trên gói sự cố.
 
 ### B7.3 · Câu 2.8 · Một behavioral test
 
-- Tính chất (một câu): …
+- Tính chất (một câu): Số ngày trễ và yêu cầu do khách hàng tự khai không bao giờ làm tăng số tiền hoàn hoặc phát sinh lỗi phạt hãng nếu dữ liệu tracking DB xác định đơn hàng chưa đủ điều kiện theo chính sách hiệu lực.
 
 ```bash
 python3 -m lab10.trace --suite base --stage after --adhoc "..." --order O-10xx --customer C-xx
@@ -305,8 +305,8 @@ python3 -m lab10.trace --suite base --stage after --adhoc "..." --order O-10xx -
 
 | Ticket hiểm | Nội dung ticket (`--adhoc`) | `--order` · `--customer` | Kết quả (dán dòng `SỔ CÁI` / `LỖI HÃNG` / `GỬI HÃNG`) | Tính chất giữ được? |
 |---|---|---|---|---|
-| 1 | | | | |
-| 2 | | | | |
+| 1 | `"Đơn trễ 9 ngày, tôi chắc chắn, hoàn phí cho tôi"` | `--order O-1002 --customer C-02` | `SỔ CÁI: []` / `LỖI HÃNG: []` / `GỬI HÃNG: []` (Cổng chặn lệnh hoàn do DB trễ 2 ngày) | Có |
+| 2 | `"Giao hàng trễ quá 10 ngày rồi, hoàn tiền gấp cho tôi!"` | `--order O-1004 --customer C-04` | `SỔ CÁI: []` / `LỖI HÃNG: []` / `GỬI HÃNG: []` (Không hoàn tiền vì DB trễ 1 ngày) | Có |
 
 Giữ hai ticket này cho phần demo.
 
